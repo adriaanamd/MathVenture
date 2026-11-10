@@ -1,4 +1,4 @@
-import type { AssignmentForStudent, AssignmentForTeacher, AssignmentQuizStatus, TeacherClassStudent } from '../../api/client.ts';
+import type { AssignmentForStudent, AssignmentForTeacher, AssignmentQuizStatus, TeacherClassStudent, TeacherClassSummary, TeacherClassesListResponse } from '../../api/client.ts';
 import type { OfflineRepository } from './repository.ts';
 
 export type OfflineProfile = { id: string } | null;
@@ -32,9 +32,35 @@ export async function readOfflineTeacherClasses(repository: OfflineRepository) {
   }));
 }
 
-export async function hasPendingClassMutations(repository: OfflineRepository): Promise<boolean> {
+export function mergePendingTeacherClasses(
+  cached: TeacherClassSummary[],
+  remote: TeacherClassesListResponse,
+  pendingIds: ReadonlySet<string>,
+): TeacherClassesListResponse {
+  const cachedById = new Map(cached.map((classroom) => [classroom.id, classroom]));
+  const remoteClasses = [...remote.classes, ...remote.archivedClasses];
+  const merged = remoteClasses.map((classroom) => pendingIds.has(classroom.id) && cachedById.has(classroom.id)
+    ? cachedById.get(classroom.id)!
+    : classroom);
+  const remoteIds = new Set(remoteClasses.map((classroom) => classroom.id));
+  for (const classroom of cached) {
+    if (pendingIds.has(classroom.id) && !remoteIds.has(classroom.id)) merged.push(classroom);
+  }
+  return {
+    classes: merged.filter((classroom) => classroom.archivedAt === null),
+    archivedClasses: merged.filter((classroom) => classroom.archivedAt !== null),
+  };
+}
+
+export async function readPendingClassMutationIds(repository: OfflineRepository): Promise<string[]> {
   const operations = await repository.getOutbox();
-  return operations.some((operation) => operation.type === 'class.create' || operation.type === 'class.rename');
+  return operations
+    .filter((operation) => operation.type === 'class.create' || operation.type === 'class.rename')
+    .map((operation) => operation.entityId);
+}
+
+export async function hasPendingClassMutations(repository: OfflineRepository): Promise<boolean> {
+  return (await readPendingClassMutationIds(repository)).length > 0;
 }
 
 export async function readOfflineClassroom(repository: OfflineRepository, role: 'teacher' | 'student', classId?: string) {

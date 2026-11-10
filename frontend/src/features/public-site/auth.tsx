@@ -11,6 +11,7 @@ import {
   verifyTeacherPasswordResetOtp,
 } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
+import { requireOnlineOnly } from '@/lib/offline/onlineOnly';
 import { Button, Input, Label, Card } from '@/components/ui';
 import { Map, Leaf, Compass, ArrowLeft } from 'lucide-react';
 
@@ -205,6 +206,7 @@ export function PasswordReset() {
 
     setLoading(true);
     try {
+      requireOnlineOnly();
       if (!isOtpVerified) {
         await verifyTeacherPasswordResetOtp(email, token);
         setIsOtpVerified(true);

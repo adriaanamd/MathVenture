@@ -51,7 +51,7 @@ export function TeacherClassSettingsPage({ classId }: { classId: string }) {
       )}
     >
       {!online && (
-        <p className="mb-6 max-w-2xl font-semibold text-[var(--teacher-ink)]">You are offline. Class changes require an internet connection.</p>
+        <p className="mb-6 max-w-2xl font-semibold text-[var(--teacher-ink)]">You are offline. Renaming remains available. To archive or unarchive a class, check internet connection as this is online-only.</p>
       )}
       {!archived && (
         <section className="teacher-section max-w-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-6 sm:p-8" aria-labelledby="class-name-settings">
@@ -69,7 +69,7 @@ export function TeacherClassSettingsPage({ classId }: { classId: string }) {
               <Input id="class-settings-name" value={name} maxLength={120} required onChange={(event) => setName(event.target.value)} />
             </div>
             {error && <p role="alert" className="text-destructive text-sm font-bold">{error}</p>}
-            <Button type="submit" variant="jungle" disabled={!online || updateClass.isPending || !trimmed || trimmed === classroom.name}>
+            <Button type="submit" variant="jungle" disabled={updateClass.isPending || !trimmed || trimmed === classroom.name}>
               {updateClass.isPending ? 'Saving...' : 'Save name'}
             </Button>
           </form>
@@ -87,13 +87,13 @@ export function TeacherClassSettingsPage({ classId }: { classId: string }) {
           type="button"
           variant="outline"
           className="mt-6 border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
-          disabled={!online || updateClass.isPending}
+          disabled={updateClass.isPending}
           onClick={() => updateClass.mutate({ classId, action: archived ? 'unarchive' : 'archive' })}
         >
           {archived ? <ArchiveRestore className="mr-1.5 h-4 w-4" /> : <Archive className="mr-1.5 h-4 w-4" />}
           {archived ? 'Unarchive' : 'Archive'}
         </Button>
-        {archived && error && <p role="alert" className="mt-4 text-destructive text-sm font-bold">{error}</p>}
+        {error && updateClass.variables?.action !== 'rename' && <p role="alert" className="mt-4 text-destructive text-sm font-bold">{error}</p>}
       </section>
     </TeacherWorkspaceBoard>
   );

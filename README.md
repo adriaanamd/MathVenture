@@ -29,7 +29,7 @@ MathVenture is an interactive, gamified math learning platform designed for youn
 
 ### Offline classroom use
 
-After one successful online teacher login and classroom-pack download, the installed PWA can continue working without internet. Assignments, roster changes, posts, quiz checkpoints, attempts, dashboards, authenticated Free Play progress, and cached student switching are saved in SQLite locally and synchronized later with **Sync now**. The first online login starts a sliding seven-day lease; force-reloads do not extend it. The first online login, account creation, password reset/change, and first classroom provisioning still require internet. See [Offline classroom operation](docs/offline-classroom.md).
+After one successful online teacher login and classroom-pack download, the installed PWA can continue working without internet. Class creation and renaming, assignments, roster changes, posts, quiz checkpoints, attempts, dashboards, authenticated Free Play progress, and cached student switching are saved in SQLite or IndexedDB locally and synchronized later with **Sync now**. The first online login starts a sliding seven-day lease; force-reloads do not extend it. Registration, initial login, teacher account changes, and class archive/unarchive still require internet; offline prompts say **check internet connection as this is online-only**. See [Offline classroom operation](docs/offline-classroom.md).
 
 ---
 
