@@ -26,6 +26,7 @@ import {
 import type { OfflineStore } from '../offline/classroom/store';
 import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
 import { getApplicationStorage } from '../offline/sqlite/runtime';
+import { OnlineOnlyError, requireOnlineOnly } from '../offline/onlineOnly';
 
 export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
@@ -150,10 +151,10 @@ export async function offlineSignIn(
   const storage = store ?? await getApplicationStorage();
   const enrollment = await readOfflineEnrollment(storage);
   if (!enrollment) {
-    throw new OfflineAuthError('No offline account is enrolled on this device.');
+    throw new OnlineOnlyError();
   }
   if (!isOfflineLeaseValid(new Date().toISOString(), enrollment)) {
-    throw new OfflineAuthError('Offline access has expired. Connect to the internet to sign in again.');
+    throw new OnlineOnlyError();
   }
   const valid = await verifyPasswordVerifier(password, enrollment.verifier);
   if (!valid) throw new OfflineAuthError('Incorrect offline password.');
@@ -198,10 +199,8 @@ export async function restoreOfflineSession({
   const resolvedStorage = storage ?? await getApplicationStorage();
   if (online) return readOfflineSession(resolvedStorage);
   const enrollment = await readOfflineEnrollment(resolvedStorage);
-  if (!enrollment) throw new OfflineAuthError('No offline account is enrolled on this device.');
-  if (!isOfflineLeaseValid(now, enrollment)) {
-    throw new OfflineAuthError('Offline access has expired. Connect to the internet to sign in again.');
-  }
+  if (!enrollment) throw new OnlineOnlyError();
+  if (!isOfflineLeaseValid(now, enrollment)) throw new OnlineOnlyError();
   const session = await readOfflineSession(resolvedStorage);
   if (!session) throw new OfflineAuthError('No offline session is available on this device.');
   return session;
@@ -268,6 +267,7 @@ const defaultTeacherReturnDeps: TeacherReturnDeps = {
 // authorization system, not app data.
 
 export async function teacherSignUp(email: string, password: string, fullName: string) {
+  requireOnlineOnly();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -278,6 +278,7 @@ export async function teacherSignUp(email: string, password: string, fullName: s
 }
 
 export async function teacherSignIn(email: string, password: string) {
+  requireOnlineOnly();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   const user = data.user;
@@ -326,6 +327,7 @@ export async function returnToTeacherAccount(
   password: string,
   deps: TeacherReturnDeps = defaultTeacherReturnDeps,
 ) {
+  requireOnlineOnly();
   if (!password.trim()) {
     throw new Error('Teacher password is required.');
   }
