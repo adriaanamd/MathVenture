@@ -12,6 +12,8 @@ import { OFFLINE_LEASE_DURATION_MS } from './lease.ts';
 import type { SqliteDatabase, SqliteRow, SqliteTransaction, SqliteValue } from '../sqlite/adapter.ts';
 
 const operationStores: Record<OfflineOperationType, OfflineEntityName> = {
+  'class.create': 'classrooms',
+  'class.rename': 'classrooms',
   'class.ensure': 'classrooms',
   'class.addStudents': 'classStudents',
   'class.removeStudent': 'classStudents',
@@ -34,6 +36,7 @@ export type OfflineMutationInput = {
   entityId: string;
   payload: Record<string, unknown>;
   dependencies: string[];
+  localEntity?: Record<string, unknown>;
 };
 
 export type OfflineRepository = {
@@ -177,7 +180,7 @@ function createLegacyOfflineRepository(
       const entityStore = operationStores[input.type];
       const entity = input.type.endsWith('.delete')
         ? { id: input.entityId, deleted: true, deletedAt: createdAt }
-        : valueWithId(input.entityId, input.payload);
+        : input.localEntity ?? valueWithId(input.entityId, input.payload);
       const operation: OfflineOutboxOperation = {
         operationId,
         deviceId,
@@ -763,7 +766,7 @@ function createSqliteRepository(
       const entityStore = operationStores[input.type];
       const entity = input.type.endsWith('.delete')
         ? { id: input.entityId, deleted: true, deletedAt: createdAt }
-        : valueWithId(input.entityId, input.payload);
+        : input.localEntity ?? valueWithId(input.entityId, input.payload);
       const operation: OfflineOutboxOperation = {
         operationId,
         deviceId,

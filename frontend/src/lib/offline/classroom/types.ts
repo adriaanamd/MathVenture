@@ -15,6 +15,8 @@ export type OfflineEntityName =
   | 'meta';
 
 export type OfflineOperationType =
+  | 'class.create'
+  | 'class.rename'
   | 'class.ensure'
   | 'class.addStudents'
   | 'class.removeStudent'

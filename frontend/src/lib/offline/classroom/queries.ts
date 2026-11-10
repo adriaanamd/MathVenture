@@ -32,6 +32,11 @@ export async function readOfflineTeacherClasses(repository: OfflineRepository) {
   }));
 }
 
+export async function hasPendingClassMutations(repository: OfflineRepository): Promise<boolean> {
+  const operations = await repository.getOutbox();
+  return operations.some((operation) => operation.type === 'class.create' || operation.type === 'class.rename');
+}
+
 export async function readOfflineClassroom(repository: OfflineRepository, role: 'teacher' | 'student', classId?: string) {
   const classrooms = await repository.readCollection('classrooms');
   const classroom = role === 'teacher'

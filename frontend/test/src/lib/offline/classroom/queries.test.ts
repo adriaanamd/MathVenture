@@ -1,8 +1,10 @@
 import { assertEquals } from 'jsr:@std/assert';
 import { createMemoryStore } from '../../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createOfflineRepository } from '../../../../../src/lib/offline/classroom/repository.ts';
+import { createOfflineClass } from '../../../../../src/lib/offline/classroom/mutations.ts';
 import {
   buildOfflinePage,
+  hasPendingClassMutations,
   isClassroomDataReady,
   readOfflineClassroom,
   readOfflineAssignments,
@@ -79,4 +81,13 @@ Deno.test('offline classroom and roster queries expose the cached teacher view',
     }],
     page: { nextCursor: null, hasMore: false },
   });
+});
+
+Deno.test('class mutation status reports pending create and rename work', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  assertEquals(await hasPendingClassMutations(repository), false);
+
+  await createOfflineClass(repository, 'teacher-1', 'Year 5', () => 'class-local-1');
+
+  assertEquals(await hasPendingClassMutations(repository), true);
 });
