@@ -4,6 +4,8 @@ import {
   OFFLINE_DB_NAME,
   OFFLINE_DB_VERSION,
 } from '../../../../../src/lib/offline/classroom/store.ts';
+import { createOfflineRepository } from '../../../../../src/lib/offline/classroom/repository.ts';
+import { createOfflineClass, renameOfflineClass } from '../../../../../src/lib/offline/classroom/mutations.ts';
 
 Deno.test('IndexedDB adapter exposes the classroom database contract', () => {
   assertEquals(OFFLINE_DB_NAME, 'mathventure-classroom');
@@ -192,12 +194,27 @@ Deno.test('IndexedDB transactions include every requested classroom store', asyn
       await transactionStore.put('assignments', { key: 'assignment-1', value: { id: 'assignment-1' } });
       await transactionStore.put('outbox', { key: 'operation-1', value: { operationId: 'operation-1' } });
     });
+
+    const repository = createOfflineRepository(
+      createIndexedDbStore('transaction-contract'),
+      () => '2026-11-10T00:00:00.000Z',
+      (() => {
+        let next = 0;
+        return () => `class-operation-${++next}`;
+      })(),
+    );
+    await createOfflineClass(repository, 'teacher-1', 'Year 5', () => 'class-local-1');
+    await renameOfflineClass(repository, 'teacher-1', 'class-local-1', 'Year 5 - Blue');
   } finally {
     if (previousIndexedDb === undefined) delete root.indexedDB;
     else root.indexedDB = previousIndexedDb;
   }
 
-  assertEquals(transactions, [{ stores: ['assignments', 'outbox'], mode: 'readwrite' }]);
+  assertEquals(transactions[0], { stores: ['assignments', 'outbox'], mode: 'readwrite' });
   assertEquals(records.get('assignments')?.get('assignment-1')?.value, { id: 'assignment-1' });
-  assertEquals(records.get('outbox')?.get('operation-1')?.value, { operationId: 'operation-1' });
+  assertEquals((records.get('classrooms')?.get('class-local-1')?.value as { name?: string } | undefined)?.name, 'Year 5 - Blue');
+  assertEquals(
+    Array.from(records.get('outbox')?.values() ?? []).map((record) => (record.value as { operationId?: string }).operationId).sort(),
+    ['class-operation-1', 'class-operation-2', 'operation-1'],
+  );
 });

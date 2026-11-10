@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client';
+import { requireOnlineOnly } from '../offline/onlineOnly';
 
 export const PASSWORD_RESET_ROUTE = '/reset-password';
 export const PASSWORD_RESET_OTP_LENGTH = 6;
@@ -53,6 +54,7 @@ export async function requestTeacherPasswordReset(
   email: string,
   auth: PasswordAuthApi = supabase.auth,
 ): Promise<void> {
+  requireOnlineOnly();
   const { error } = await auth.resetPasswordForEmail(requireEmail(email), {
     redirectTo: getPasswordResetRedirectUrl(),
   });
@@ -64,6 +66,7 @@ export async function verifyTeacherPasswordResetOtp(
   token: string,
   auth: PasswordAuthApi = supabase.auth,
 ): Promise<void> {
+  requireOnlineOnly();
   const validationError = validateRecoveryOtp(token);
   if (validationError) throw new Error(validationError);
 
@@ -81,6 +84,7 @@ export async function changeTeacherPassword(
   confirmation: string,
   auth: PasswordAuthApi = supabase.auth,
 ): Promise<void> {
+  requireOnlineOnly();
   if (!currentPassword) throw new Error('Enter your current password.');
   const validationError = validateNewPassword(newPassword, confirmation);
   if (validationError) throw new Error(validationError);

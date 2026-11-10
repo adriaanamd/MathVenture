@@ -24,7 +24,16 @@ export function TeacherClassList() {
     };
   }, []);
 
-  const data = classesQuery.data && 'archivedClasses' in classesQuery.data ? classesQuery.data : null;
+  const queryData = classesQuery.data;
+  const data: { classes: TeacherClassSummary[]; archivedClasses: TeacherClassSummary[] } | null = queryData
+    && 'archivedClasses' in queryData
+    && Array.isArray(queryData.classes)
+    && Array.isArray(queryData.archivedClasses)
+    ? {
+      classes: queryData.classes as TeacherClassSummary[],
+      archivedClasses: queryData.archivedClasses as TeacherClassSummary[],
+    }
+    : null;
   const activeClasses = useMemo(() => data?.classes ?? [], [data]);
   const archivedClasses = useMemo(() => data?.archivedClasses ?? [], [data]);
   const managementError = createClass.error ?? updateClass.error;
@@ -40,6 +49,7 @@ export function TeacherClassList() {
   };
 
   const unarchive = (classroom: TeacherClassSummary) => {
+    updateClass.reset();
     void updateClass.mutateAsync({ classId: classroom.id, action: 'unarchive' });
   };
 
@@ -53,7 +63,7 @@ export function TeacherClassList() {
         </>
       )}
       action={(
-        <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" disabled={!online} onClick={() => setManagement({ mode: 'create' })}>
+        <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" onClick={() => setManagement({ mode: 'create' })}>
           New class
         </Button>
       )}
@@ -61,9 +71,10 @@ export function TeacherClassList() {
       <div className="mb-6">
         <OfflinePackPanel />
       </div>
-      {!online && <Card className="mb-6 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">You are offline. Class creation, renaming, archiving, and unarchiving require an internet connection.</Card>}
+      {!online && <Card className="mb-6 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">You are offline. Class creation and renaming continue locally. To archive or unarchive a class, check internet connection as this is online-only.</Card>}
       {classesQuery.isLoading && <Card className="border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">Loading classes...</Card>}
       {classesQuery.error && <Card role="alert" className="border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]">{(classesQuery.error as Error).message}</Card>}
+      {managementError && !management && <Card role="alert" className="mb-6 border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">{managementError instanceof Error ? managementError.message : String(managementError)}</Card>}
       {!classesQuery.isLoading && !classesQuery.error && !data && <Card className="border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]">Class management is available for teacher accounts.</Card>}
       {data && (
         <div className="grid gap-10">
@@ -72,9 +83,9 @@ export function TeacherClassList() {
               <div><p className="teacher-eyebrow">Current roster spaces</p><h2 id="active-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Active classes</h2></div>
               <span className="text-sm font-bold text-[var(--teacher-ink)]/60">{activeClasses.length} total</span>
             </div>
-            {activeClasses.length ? <div className="mt-5 grid gap-5 md:grid-cols-2">{activeClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onUnarchive={() => unarchive(classroom)} />)}</div> : <Card className="mt-5 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">No active classes yet. Create your first class to get started.</Card>}
+            {activeClasses.length ? <div className="mt-5 grid gap-5 md:grid-cols-2">{activeClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} onUnarchive={() => unarchive(classroom)} />)}</div> : <Card className="mt-5 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">No active classes yet. Create your first class to get started.</Card>}
           </section>
-          {archivedClasses.length > 0 && <section aria-labelledby="archived-classes-heading"><div><p className="teacher-eyebrow">Kept for reference</p><h2 id="archived-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Archived classes</h2></div><div className="mt-5 grid gap-5 md:grid-cols-2">{archivedClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onUnarchive={() => unarchive(classroom)} />)}</div></section>}
+          {archivedClasses.length > 0 && <section aria-labelledby="archived-classes-heading"><div><p className="teacher-eyebrow">Kept for reference</p><h2 id="archived-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Archived classes</h2></div><div className="mt-5 grid gap-5 md:grid-cols-2">{archivedClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} onUnarchive={() => unarchive(classroom)} />)}</div></section>}
         </div>
       )}
       <TeacherClassManagementDialog open={management !== null} mode={management?.mode ?? 'create'} classroom={management?.classroom} pending={createClass.isPending || updateClass.isPending} error={managementError instanceof Error ? managementError.message : null} onOpenChange={(open) => { if (!open) { createClass.reset(); updateClass.reset(); setManagement(null); } }} onSubmit={(name) => void submitName(name)} />

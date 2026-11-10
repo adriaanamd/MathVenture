@@ -13,9 +13,12 @@ import type { TeacherAddStudentDraft } from '@/lib/teacher/add-students';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 import {
   addOfflineStudents,
+  createOfflineClass,
   removeOfflineStudent,
+  renameOfflineClass,
 } from '@/lib/offline/classroom/mutations';
-import { readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster } from '@/lib/offline/classroom/queries';
+import { requireOnlineOnly } from '@/lib/offline/onlineOnly';
+import { mergePendingTeacherClasses, readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster, readPendingClassMutationIds } from '@/lib/offline/classroom/queries';
 import { classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
 import {
   invalidateClassChanged,
@@ -65,11 +68,26 @@ export function useClasses() {
       if (user) {
         if (user.role === 'teacher') {
           const cachedClasses = await readOfflineTeacherClasses(repository);
+          const pendingClassIds = new Set(await readPendingClassMutationIds(repository));
           if (browserIsOffline()) {
             return {
               classes: cachedClasses.filter((classroom) => classroom.archivedAt === null),
               archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null),
             } satisfies TeacherClassesListResponse;
+          }
+          if (pendingClassIds.size > 0) {
+            try {
+              const serverData = await api.classes.list();
+              return mergePendingTeacherClasses(cachedClasses, {
+                classes: serverData.classes ?? [],
+                archivedClasses: serverData.archivedClasses ?? [],
+              }, pendingClassIds);
+            } catch {
+              return {
+                classes: cachedClasses.filter((classroom) => classroom.archivedAt === null),
+                archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null),
+              } satisfies TeacherClassesListResponse;
+            }
           }
         }
         const cached = await readOfflineClassroom(repository, user.role);
@@ -98,7 +116,8 @@ export function useTeacherClassroom(classId?: string) {
       if (!classId) return { classroom: null };
       if (user) {
         const cached = await readOfflineClassroom(repository, 'teacher', classId);
-        if (browserIsOffline()) return { classroom: cached && cached.id === classId ? cached : null };
+        const pendingClassIds = new Set(await readPendingClassMutationIds(repository));
+        if (browserIsOffline() || pendingClassIds.has(classId)) return { classroom: cached && cached.id === classId ? cached : null };
       }
       const data = await api.classes.list();
       const classrooms = [...(data.classes ?? []), ...(data.archivedClasses ?? [])];
@@ -172,10 +191,16 @@ export function useClassRosterStudent(classId?: string, studentId?: string | nul
 
 export function useCreateClass() {
   const queryClient = useQueryClient();
-  const { bootstrapNow } = useOfflineClassroom();
+  const { user } = useAuth();
+  const { repository, bootstrapNow, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (name: string) => {
-      if (browserIsOffline()) throw new Error('Creating classes requires an internet connection.');
+    mutationFn: async (name: string) => {
+      if (user?.role === 'teacher') {
+        const result = await createOfflineClass(repository, user.id, name);
+        if (!browserIsOffline()) await syncNow();
+        return result;
+      }
+      requireOnlineOnly();
       return api.classes.create(name);
     },
     onSuccess: () => {
@@ -187,10 +212,22 @@ export function useCreateClass() {
 
 export function useUpdateClass() {
   const queryClient = useQueryClient();
-  const { bootstrapNow } = useOfflineClassroom();
+  const { user } = useAuth();
+  const { repository, bootstrapNow, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (input: { classId: string; action: 'rename' | 'archive' | 'unarchive'; name?: string }) => {
-      if (browserIsOffline()) throw new Error('Class changes require an internet connection.');
+    mutationFn: async (input: { classId: string; action: 'rename' | 'archive' | 'unarchive'; name?: string }) => {
+      if (input.action === 'rename' && user?.role === 'teacher') {
+        if (browserIsOffline()) return renameOfflineClass(repository, user.id, input.classId, input.name ?? '');
+        let result: Awaited<ReturnType<typeof renameOfflineClass>>;
+        try {
+          result = await renameOfflineClass(repository, user.id, input.classId, input.name ?? '');
+        } catch {
+          return api.classes.update(input);
+        }
+        await syncNow();
+        return result;
+      }
+      if (input.action === 'archive' || input.action === 'unarchive') requireOnlineOnly();
       return api.classes.update(input);
     },
     onSuccess: (_, variables) => {

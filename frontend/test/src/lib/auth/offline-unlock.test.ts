@@ -1,11 +1,20 @@
 import { assertEquals, assertRejects } from 'jsr:@std/assert';
 import { createMemoryStore } from '../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createMemorySqlite } from '../../../../src/lib/offline/sqlite/memoryAdapter.ts';
+import { ONLINE_ONLY_OFFLINE_MESSAGE } from '../../../../src/lib/offline/onlineOnly.ts';
 
 Deno.env.set('VITE_SUPABASE_URL', 'https://example.supabase.co');
 Deno.env.set('VITE_SUPABASE_ANON_KEY', 'test-anon-key');
 
 const { enrollOfflineDevice, offlineSignIn, restoreOfflineSession } = await import('../../../../src/lib/auth/auth.ts');
+
+Deno.test('offline sign-in requires internet when no account is enrolled', async () => {
+  await assertRejects(
+    () => offlineSignIn('secret', createMemoryStore()),
+    Error,
+    ONLINE_ONLY_OFFLINE_MESSAGE,
+  );
+});
 
 Deno.test('offline sign-in returns the enrolled teacher for the correct password', async () => {
   const store = createMemoryStore();
@@ -74,7 +83,7 @@ Deno.test('expired offline lease returns needs-auth and preserves pending local 
   await assertRejects(
     () => restoreOfflineSession({ now: '2026-10-24T12:00:00.000Z', online: false, storage: database }),
     Error,
-    'Offline access has expired. Connect to the internet to sign in again.',
+    ONLINE_ONLY_OFFLINE_MESSAGE,
   );
   assertEquals((await database.query('select operation_id from sync_outbox')).map((row) => row.operation_id), ['op-1']);
 });

@@ -1,4 +1,5 @@
 import { assertEquals, assertRejects } from "jsr:@std/assert";
+import { ONLINE_ONLY_OFFLINE_MESSAGE } from "../../../../src/lib/offline/onlineOnly.ts";
 
 Deno.env.set("VITE_SUPABASE_URL", "https://example.supabase.co");
 Deno.env.set("VITE_SUPABASE_ANON_KEY", "test-anon-key");
@@ -105,5 +106,21 @@ Deno.test("does not call Auth for an invalid OTP", async () => {
     Error,
     "Enter the 6-digit code.",
   );
+  assertEquals(calls, []);
+});
+
+Deno.test("does not call Auth when changing a password offline", async () => {
+  const calls: Array<unknown> = [];
+  const previousNavigator = globalThis.navigator;
+  Object.defineProperty(globalThis, "navigator", { value: { onLine: false }, configurable: true });
+  try {
+    await assertRejects(
+      () => changeTeacherPassword("current-secret", "new-secret", "new-secret", makeAuth(calls)),
+      Error,
+      ONLINE_ONLY_OFFLINE_MESSAGE,
+    );
+  } finally {
+    Object.defineProperty(globalThis, "navigator", { value: previousNavigator, configurable: true });
+  }
   assertEquals(calls, []);
 });

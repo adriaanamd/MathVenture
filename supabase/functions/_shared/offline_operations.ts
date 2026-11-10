@@ -8,6 +8,8 @@ import {
 export const MAX_OFFLINE_SYNC_BATCH = 50;
 
 export const OFFLINE_OPERATION_TYPES = [
+  "class.create",
+  "class.rename",
   "class.ensure",
   "class.addStudents",
   "class.removeStudent",
@@ -460,6 +462,38 @@ export type RosterOperationPersistence = {
   removeMembership(input: { classId: string; studentId: string }): Promise<void>;
 };
 
+export type ClassOperationPersistence = {
+  createClass(input: { id: string; teacherId: string; name: string }): Promise<Record<string, unknown>>;
+  getTeacherClass(teacherId: string, classId: string): Promise<Record<string, unknown> | null>;
+  renameClass(classId: string, name: string): Promise<Record<string, unknown> | null>;
+};
+
+export function createClassOperationApplier(
+  persistence: ClassOperationPersistence,
+): (teacherId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
+  return async (teacherId, operation) => {
+    const classId = payloadString(operation.payload, "classId") || operation.entityId;
+    if (!classId) return { status: "rejected", error: "classId is required." };
+    const name = payloadString(operation.payload, "name");
+    if (!name) return { status: "rejected", error: "Classroom name is required." };
+    if (name.length > 120) return { status: "rejected", error: "Classroom name is too long." };
+
+    if (operation.type === "class.create") {
+      const existing = await persistence.getTeacherClass(teacherId, classId);
+      if (existing) return { status: "accepted", result: { classroom: existing, duplicate: true } };
+      const classroom = await persistence.createClass({ id: classId, teacherId, name });
+      return { status: "accepted", result: { classroom } };
+    }
+
+    const existing = await persistence.getTeacherClass(teacherId, classId);
+    if (!existing) return { status: "rejected", error: "Classroom not found." };
+    const classroom = await persistence.renameClass(classId, name);
+    return classroom
+      ? { status: "accepted", result: { classroom } }
+      : { status: "rejected", error: "Classroom not found." };
+  };
+}
+
 function rosterNameKey(identity: NormalizedStudentIdentity): string {
   return `${identity.normalizedLastName}:${identity.normalizedFirstName}`;
 }
@@ -628,6 +662,37 @@ export async function applyOfflineOperation(
   teacherId: string,
   operation: OfflineOperation,
 ): Promise<OfflineOperationExecution> {
+  if (operation.type === "class.create" || operation.type === "class.rename") {
+    const { adminClient } = await import("./client.ts");
+    const persistence: ClassOperationPersistence = {
+      async createClass(input) {
+        const { data, error } = await adminClient.from("classes").insert({
+          id: input.id,
+          teacher_id: input.teacherId,
+          name: input.name,
+        }).select("id, teacher_id, name, created_at, archived_at").single();
+        if (error || !data) throw error ?? new Error("Failed to create classroom");
+        return data;
+      },
+      async getTeacherClass(ownerId, classId) {
+        const { data, error } = await adminClient.from("classes")
+          .select("id, teacher_id, name, created_at, archived_at")
+          .eq("id", classId).eq("teacher_id", ownerId).maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+      async renameClass(classId, name) {
+        const { data, error } = await adminClient.from("classes")
+          .update({ name })
+          .eq("id", classId)
+          .select("id, teacher_id, name, created_at, archived_at")
+          .maybeSingle();
+        if (error) throw error;
+        return data;
+      },
+    };
+    return createClassOperationApplier(persistence)(teacherId, operation);
+  }
   if (operation.type === "assignment.create" || operation.type === "assignment.update" || operation.type === "assignment.delete") {
     const { adminClient } = await import("./client.ts");
     const persistence: AssignmentOperationPersistence = {

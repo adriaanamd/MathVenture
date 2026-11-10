@@ -1,12 +1,16 @@
 import { assertEquals } from 'jsr:@std/assert';
 import { createMemoryStore } from '../../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createOfflineRepository } from '../../../../../src/lib/offline/classroom/repository.ts';
+import { createOfflineClass } from '../../../../../src/lib/offline/classroom/mutations.ts';
 import {
   buildOfflinePage,
+  hasPendingClassMutations,
   isClassroomDataReady,
+  mergePendingTeacherClasses,
   readOfflineClassroom,
   readOfflineAssignments,
   readOfflineRoster,
+  readPendingClassMutationIds,
 } from '../../../../../src/lib/offline/classroom/queries.ts';
 
 Deno.test('cached classroom queries stay enabled for an offline enrolled profile', async () => {
@@ -78,5 +82,40 @@ Deno.test('offline classroom and roster queries expose the cached teacher view',
       assignments: [],
     }],
     page: { nextCursor: null, hasMore: false },
+  });
+});
+
+Deno.test('class mutation status reports pending create and rename work', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  assertEquals(await hasPendingClassMutations(repository), false);
+
+  await createOfflineClass(repository, 'teacher-1', 'Year 5', () => 'class-local-1');
+
+  assertEquals(await hasPendingClassMutations(repository), true);
+  assertEquals(await readPendingClassMutationIds(repository), ['class-local-1']);
+});
+
+Deno.test('pending local class rows win over stale server class snapshots', () => {
+  const cached = [{
+    id: 'class-local-1',
+    name: 'Year 5 - Blue',
+    createdAt: '2026-11-10T00:00:00.000Z',
+    archivedAt: null,
+    studentCount: 0,
+  }];
+  const remote = {
+    classes: [{ ...cached[0], name: 'Year 5' }],
+    archivedClasses: [{
+      id: 'class-2',
+      name: 'Archived',
+      createdAt: '2026-11-09T00:00:00.000Z',
+      archivedAt: '2026-11-10T00:00:00.000Z',
+      studentCount: 3,
+    }],
+  };
+
+  assertEquals(mergePendingTeacherClasses(cached, remote, new Set(['class-local-1'])), {
+    classes: cached,
+    archivedClasses: remote.archivedClasses,
   });
 });

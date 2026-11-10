@@ -9,6 +9,60 @@ function makeId(idFactory?: () => string): string {
   return idFactory?.() ?? crypto.randomUUID();
 }
 
+export async function createOfflineClass(
+  repository: OfflineRepository,
+  actorId: string,
+  name: string,
+  idFactory?: () => string,
+): Promise<PendingMutationResult> {
+  const id = makeId(idFactory);
+  const localEntity = {
+    id,
+    teacher_id: actorId,
+    name: name.trim(),
+    created_at: new Date().toISOString(),
+    archived_at: null,
+  };
+  await repository.applyMutation({
+    actorId,
+    type: 'class.create',
+    entityId: id,
+    payload: { classId: id, name: localEntity.name },
+    dependencies: [],
+    localEntity,
+  });
+  return { id, syncState: 'pending' };
+}
+
+export async function renameOfflineClass(
+  repository: OfflineRepository,
+  actorId: string,
+  classId: string,
+  name: string,
+): Promise<PendingMutationResult> {
+  const current = await repository.readByKey('classrooms', classId);
+  if (!current || typeof current !== 'object') {
+    throw new Error('Classroom is not available offline.');
+  }
+  const pendingCreate = (await repository.getOutbox()).find(
+    (operation) => operation.type === 'class.create' && operation.entityId === classId,
+  );
+  const localEntity = {
+    ...current,
+    id: classId,
+    name: name.trim(),
+  };
+  await repository.applyMutation({
+    actorId,
+    type: 'class.rename',
+    entityId: classId,
+    payload: { classId, name: name.trim() },
+    dependencies: pendingCreate ? [pendingCreate.operationId] : [],
+    localEntity,
+  });
+  return { id: classId, syncState: 'pending' };
+}
+
 export async function createOfflineAssignment(
   repository: OfflineRepository,
   actorId: string,

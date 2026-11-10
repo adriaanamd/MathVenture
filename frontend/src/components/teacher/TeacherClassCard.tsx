@@ -20,11 +20,9 @@ function classAccentColor(name: string) {
 
 export function TeacherClassCard({
   classroom,
-  online,
   onUnarchive,
 }: {
   classroom: TeacherClassSummary;
-  online: boolean;
   onUnarchive(): void;
 }) {
   const archived = isArchivedClass(classroom);
@@ -64,7 +62,7 @@ export function TeacherClassCard({
         <Button asChild size="sm" className="bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90">
           <Link href={teacherClassPath(classroom.id)}>Open class</Link>
         </Button>
-        {online && archived && (
+        {archived && (
             <Button
               type="button"
               size="sm"
