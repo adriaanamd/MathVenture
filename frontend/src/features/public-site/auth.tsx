@@ -11,7 +11,7 @@ import {
   verifyTeacherPasswordResetOtp,
 } from '@/lib/auth';
 import { supabase } from '@/lib/supabase/client';
-import { requireOnlineOnly } from '@/lib/offline/onlineOnly';
+import { isNetworkFailure, requireOnlineOnly } from '@/lib/offline/onlineOnly';
 import { Button, Input, Label, Card } from '@/components/ui';
 import { Map, Leaf, Compass, ArrowLeft } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export function Login() {
         try {
           await teacherSignIn(email, password);
         } catch (onlineError) {
-          if (typeof navigator === 'undefined' || navigator.onLine) throw onlineError;
+          if (!isNetworkFailure(onlineError)) throw onlineError;
           await offlineSignIn(password);
         }
       }

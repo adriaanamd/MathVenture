@@ -12,6 +12,13 @@ export function isBrowserOnline(): boolean {
     || (navigator as Navigator & { onLine?: boolean }).onLine !== false;
 }
 
+export function isNetworkFailure(error: unknown): boolean {
+  const text = error instanceof Error
+    ? `${error.name} ${error.message}`
+    : typeof error === 'string' ? error : '';
+  return /failed to fetch|fetch failed|networkerror|network request failed|load failed|internet disconnected|network changed/i.test(text);
+}
+
 export function requireOnlineOnly(isOnline = isBrowserOnline()): void {
   if (!isOnline) throw new OnlineOnlyError();
 }

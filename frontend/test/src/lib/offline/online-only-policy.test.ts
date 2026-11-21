@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert';
 import {
   ONLINE_ONLY_OFFLINE_MESSAGE,
   OnlineOnlyError,
+  isNetworkFailure,
   requireOnlineOnly,
 } from '../../../../src/lib/offline/onlineOnly.ts';
 
@@ -18,4 +19,9 @@ Deno.test('online-only policy uses the required exact offline message', () => {
 
 Deno.test('online-only policy allows connected actions', () => {
   requireOnlineOnly(true);
+});
+
+Deno.test('network failure detection distinguishes transport errors from auth errors', () => {
+  assertEquals(isNetworkFailure(new TypeError('Failed to fetch')), true);
+  assertEquals(isNetworkFailure(new Error('Invalid login credentials')), false);
 });
