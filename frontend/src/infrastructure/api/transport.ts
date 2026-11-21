@@ -36,9 +36,13 @@ export async function invokeFunction<T>(
     body: options?.body,
   });
   if (error) {
-    const message = (error as { context?: { json?: () => Promise<{ error?: string }> } }).context
-      ? await (error as any).context.json().then((j: any) => j?.error).catch(() => undefined)
-      : undefined;
+    const context = (error as { context?: unknown }).context;
+    const contextJson = context && typeof (context as { json?: unknown }).json === 'function'
+      ? (context as { json: () => Promise<{ error?: string }> }).json()
+      : Promise.resolve(undefined);
+    const message = await contextJson
+      .then((payload) => payload?.error)
+      .catch(() => undefined);
     throw new Error(message ?? error.message ?? 'Request failed');
   }
   return data as T;
