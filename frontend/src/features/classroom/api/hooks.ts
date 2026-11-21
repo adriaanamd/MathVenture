@@ -20,6 +20,7 @@ import {
 import { requireOnlineOnly } from '@/lib/offline/onlineOnly';
 import { mergePendingTeacherClasses, readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster, readPendingClassMutationIds } from '@/lib/offline/classroom/queries';
 import { classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
+import { loadOnlineFirst } from '@infrastructure/api/online-first';
 import {
   invalidateClassChanged,
   invalidateClassCreated,
@@ -75,20 +76,23 @@ export function useClasses() {
               archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null),
             } satisfies TeacherClassesListResponse;
           }
-          if (pendingClassIds.size > 0) {
-            try {
+          return loadOnlineFirst({
+            isOffline: false,
+            readCache: async () => cachedClasses.length > 0 ? {
+              classes: cachedClasses.filter((classroom) => classroom.archivedAt === null),
+              archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null),
+            } satisfies TeacherClassesListResponse : null,
+            readServer: async () => {
               const serverData = await api.classes.list();
-              return mergePendingTeacherClasses(cachedClasses, {
+              const remote = {
                 classes: serverData.classes ?? [],
                 archivedClasses: serverData.archivedClasses ?? [],
-              }, pendingClassIds);
-            } catch {
-              return {
-                classes: cachedClasses.filter((classroom) => classroom.archivedAt === null),
-                archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null),
               } satisfies TeacherClassesListResponse;
-            }
-          }
+              return pendingClassIds.size > 0
+                ? mergePendingTeacherClasses(cachedClasses, remote, pendingClassIds)
+                : remote;
+            },
+          });
         }
         const cached = await readOfflineClassroom(repository, user.role);
         if (browserIsOffline()) return toLegacyClassesResponse({ classroom: cached });
@@ -116,8 +120,28 @@ export function useTeacherClassroom(classId?: string) {
       if (!classId) return { classroom: null };
       if (user) {
         const cached = await readOfflineClassroom(repository, 'teacher', classId);
+        const cachedTeacher = cached && 'studentCount' in cached ? cached as TeacherClassSummary : null;
         const pendingClassIds = new Set(await readPendingClassMutationIds(repository));
-        if (browserIsOffline() || pendingClassIds.has(classId)) return { classroom: cached && cached.id === classId ? cached : null };
+        if (browserIsOffline() || pendingClassIds.has(classId)) return { classroom: cachedTeacher && cachedTeacher.id === classId ? cachedTeacher : null };
+
+        const data = await loadOnlineFirst<TeacherClassesListResponse>({
+          isOffline: false,
+          readCache: async () => {
+            if (!cachedTeacher || cachedTeacher.id !== classId) return null;
+            return cachedTeacher.archivedAt
+              ? { classes: [], archivedClasses: [cachedTeacher] }
+              : { classes: [cachedTeacher], archivedClasses: [] };
+          },
+          readServer: async () => {
+            const serverData = await api.classes.list();
+            return {
+              classes: serverData.classes ?? [],
+              archivedClasses: serverData.archivedClasses ?? [],
+            };
+          },
+        });
+        const classrooms = [...(data.classes ?? []), ...(data.archivedClasses ?? [])];
+        return { classroom: classrooms.find((classroom) => classroom.id === classId) ?? null };
       }
       const data = await api.classes.list();
       const classrooms = [...(data.classes ?? []), ...(data.archivedClasses ?? [])];
@@ -159,7 +183,7 @@ export function useClassRoster(classId?: string) {
       try {
         return await api.classes.roster(classId!, { cursor: pageParam });
       } catch (error) {
-        if (cached.students.length) return cached;
+        if (await readOfflineClassroom(repository, 'teacher', classId)) return cached;
         throw error;
       }
     },

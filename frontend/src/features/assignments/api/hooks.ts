@@ -15,8 +15,8 @@ import {
   startOfflineAssignmentQuiz,
   submitOfflineAttempt,
 } from '@/lib/offline/classroom/quiz';
-import { readOfflineAssignments } from '@/lib/offline/classroom/queries';
-import { loadAssignmentsOnlineFirst, waitForOnlineAssignmentSync } from './online';
+import { readOfflineAssignments, readOfflineClassroom } from '@/lib/offline/classroom/queries';
+import { waitForOnlineAssignmentSync } from './online';
 import { assignmentKeys, classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
 import { loadOnlineFirst } from '@infrastructure/api/online-first';
 import {
@@ -39,11 +39,17 @@ export function useAssignments(classId?: string) {
   return useInfiniteQuery({
     queryKey: assignmentKeys.list(classId),
     queryFn: async ({ pageParam }) => {
-      return loadAssignmentsOnlineFirst({
+      return loadOnlineFirst({
         isOffline: browserIsOffline(),
         readCache: async () => {
           const cached = await readOfflineAssignments(repository, classId, user?.role === 'student' ? user.id : null);
-          return { assignments: cached, page: { nextCursor: null, hasMore: false } };
+          const cachedClassroom = user
+            ? await readOfflineClassroom(repository, user.role, user.role === 'teacher' ? classId : undefined)
+            : null;
+          if (cached.length > 0 || cachedClassroom || browserIsOffline()) {
+            return { assignments: cached, page: { nextCursor: null, hasMore: false } };
+          }
+          return null;
         },
         readServer: () => api.assignments.list(classId, { cursor: pageParam }),
       });
