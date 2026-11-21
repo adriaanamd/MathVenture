@@ -105,7 +105,7 @@ export function useClasses() {
         });
       }
       const data = await api.classes.list();
-      if (user?.role === 'teacher' && data.classes) {
+      if (data.classes) {
         return {
           classes: data.classes,
           archivedClasses: data.archivedClasses ?? [],
