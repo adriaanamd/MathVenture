@@ -12,12 +12,13 @@ import type {
 export function mapStudentAssignments(
   assignments: readonly AssignmentForStudent[],
 ): PortalAssignment[] {
-  return assignments.map(({ id, lessonId, classId, dueAt, createdAt, completed }) => ({
+  return assignments.map(({ id, lessonId, classId, dueAt, createdAt, currentGameOrder, completed }) => ({
     id,
     lessonId,
     classId,
     dueAt,
     createdAt,
+    currentGameOrder,
     completed,
   }));
 }

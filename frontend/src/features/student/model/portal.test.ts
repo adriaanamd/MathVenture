@@ -22,6 +22,7 @@ describe('student portal model', () => {
         lessonId: 'colors',
         classId: 'class-1',
         dueAt: null,
+        currentGameOrder: 1,
         completed: true,
       }],
       recentAttempts: [{ lessonId: 'colors', score: 8, maxScore: 10 }],
@@ -34,7 +35,23 @@ describe('student portal model', () => {
       isAssigned: true,
       isCompleted: true,
       recentScorePct: 80,
+      gameTitle: 'Balloon Finding Game',
     });
+  });
+
+  it('identifies the current assigned game for the student menu', () => {
+    const entries = buildPortalTopicEntries({
+      assignments: [{
+        id: 'assignment-1',
+        lessonId: 'sequencing',
+        dueAt: null,
+        currentGameOrder: 2,
+        completed: false,
+      }],
+      recentAttempts: [],
+    });
+
+    expect(entries[0].gameTitle).toBe('Size Sorter');
   });
 
   it('selects the earliest pending assignment for the rail', () => {

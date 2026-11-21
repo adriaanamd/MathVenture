@@ -74,8 +74,8 @@ export function LegacyLessonMenu({
               variant="ghost"
               onClick={() => onSelect(topic.href)}
               aria-label={showStatus
-                ? `${topic.fallbackLabel}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`
-                : topic.fallbackLabel}
+                ? `${topic.fallbackLabel} — ${topic.gameTitle ?? "Classroom quiz"}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`
+                : `${topic.fallbackLabel} — ${topic.gameTitle ?? "Classroom quiz"}`}
               className={cn(
                 "student-trail-stop group grid min-h-[72px] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:px-4",
                 showStatus
@@ -89,18 +89,20 @@ export function LegacyLessonMenu({
               </span>
 
               <div className="min-w-0">
-                {topic.isBroken ? (
-                  <span className="student-trail-stop__label block truncate text-lg font-extrabold tracking-tight">
-                    {topic.fallbackLabel}
-                  </span>
-                ) : (
+                {!topic.isBroken && (
                   <img
                     src={topic.assetSrc}
                     alt={topic.fallbackLabel}
-                    className="max-h-10 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
+                    className="max-h-8 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
                     onError={() => setBrokenImages((current) => ({ ...current, [topic.id]: true }))}
                   />
                 )}
+                <span className="student-trail-stop__label block truncate text-base font-extrabold tracking-tight">
+                  {topic.fallbackLabel}
+                </span>
+                <span className="student-trail-stop__game block truncate text-sm font-bold opacity-75">
+                  {topic.gameTitle ?? "Classroom quiz"}
+                </span>
               </div>
 
               {showStatus && (

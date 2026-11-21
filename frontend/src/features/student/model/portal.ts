@@ -1,3 +1,5 @@
+import { getGameCatalogEntry } from "@/lib/games/catalog";
+
 export type PortalTopicId =
   | "colors"
   | "shapes"
@@ -15,6 +17,7 @@ export type PortalAssignment = {
   classId?: string | null;
   dueAt: string | null;
   createdAt?: string | null;
+  currentGameOrder?: number;
   completed: boolean;
 };
 
@@ -46,11 +49,12 @@ export type PortalTopicEntry = {
   isAssigned: boolean;
   isCompleted: boolean;
   recentScorePct: number | null;
+  gameTitle?: string;
 };
 
 export type PortalRailSummary = {
   nextAction:
-    | { kind: "assignment"; lessonId: PortalTopicId; href: string; dueAt: string | null }
+    | { kind: "assignment"; lessonId: PortalTopicId; href: string; dueAt: string | null; gameTitle?: string }
     | { kind: "free-play"; href: string };
   classroom: PortalClass | null;
   completedLessons: number;
@@ -138,6 +142,12 @@ function getSingleClassId(classes: PortalClass[]) {
   return classes.length === 1 ? classes[0].id : null;
 }
 
+function getAssignedGameTitle(lessonId: string, gameOrder?: number) {
+  if (typeof gameOrder !== "number") return undefined;
+  const topicId = toPortalTopicId(lessonId);
+  return topicId ? getGameCatalogEntry(topicId, gameOrder)?.title : undefined;
+}
+
 export function buildStudentLessonHref(input: {
   lessonId: PortalTopicId;
   assignmentId?: string | null;
@@ -185,6 +195,7 @@ export function buildPortalTopicEntries(input: {
     if (!assignment) return [];
 
     const attempt = attemptsByLesson.get(topic.id) ?? null;
+    const gameTitle = getAssignedGameTitle(topic.id, assignment.currentGameOrder);
     return [{
       ...topic,
       href: buildStudentLessonHref({
@@ -195,6 +206,7 @@ export function buildPortalTopicEntries(input: {
       isAssigned: Boolean(assignment),
       isCompleted: assignment.completed,
       recentScorePct: attempt ? toScorePct(attempt.score, attempt.maxScore) : null,
+      ...(gameTitle ? { gameTitle } : {}),
     }];
   });
 }
@@ -209,6 +221,9 @@ export function summarizePortalRail(input: {
   }) ?? null;
 
   const nextLessonId = nextAssignment ? toPortalTopicId(nextAssignment.lessonId) : null;
+  const nextGameTitle = nextAssignment && nextLessonId
+    ? getAssignedGameTitle(nextLessonId, nextAssignment.currentGameOrder)
+    : undefined;
   const recentAttempt = input.dashboard.recentAttempts[0] ?? null;
   const recentLessonId = recentAttempt ? toPortalTopicId(recentAttempt.lessonId) : null;
 
@@ -223,6 +238,7 @@ export function summarizePortalRail(input: {
             classId: nextAssignment.classId ?? null,
           }),
           dueAt: nextAssignment.dueAt,
+          ...(nextGameTitle ? { gameTitle: nextGameTitle } : {}),
         }
       : { kind: "free-play", href: "/student" },
     classroom: input.classroom,

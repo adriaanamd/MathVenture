@@ -59,6 +59,21 @@ Deno.test("buildPortalTopicEntries returns no classroom lesson menu entries with
   assertEquals(entries, []);
 });
 
+Deno.test("buildPortalTopicEntries identifies the current assigned game", () => {
+  const entries = buildPortalTopicEntries({
+    assignments: [{
+      id: "asg-1",
+      lessonId: "sequencing",
+      dueAt: null,
+      currentGameOrder: 2,
+      completed: false,
+    }],
+    recentAttempts: [],
+  });
+
+  assertEquals(entries[0].gameTitle, "Size Sorter");
+});
+
 Deno.test("buildPortalTopicEntries keeps the earliest pending assignment when a lesson has multiple entries", () => {
   const entries = buildPortalTopicEntries({
     assignments: [

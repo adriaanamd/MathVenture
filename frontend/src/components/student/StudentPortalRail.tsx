@@ -27,6 +27,9 @@ export function StudentPortalRail({
           <h2 className="mt-2 text-3xl font-extrabold capitalize">
             {summary.nextAction.lessonId}
           </h2>
+          <p className="mt-1 text-lg font-extrabold text-primary">
+            {summary.nextAction.gameTitle ?? "Classroom quiz"}
+          </p>
           <p className="mt-1 text-base font-bold">{t("student.portal.playThisNext")}</p>
           <Button className="mt-5 min-h-14 w-full rounded-2xl text-lg" variant="jungle" onClick={() => onOpenAssignment(summary.nextAction.href)}>
             {t("student.playNow")}

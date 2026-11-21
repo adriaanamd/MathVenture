@@ -144,6 +144,10 @@
     color: var(--student-moss);
   }
 
+  .student-trail-stop__game {
+    color: var(--student-ink);
+  }
+
   .student-trail-stop__status {
     color: var(--student-moss);
     background: color-mix(in srgb, var(--student-sage) 45%, var(--student-sand));

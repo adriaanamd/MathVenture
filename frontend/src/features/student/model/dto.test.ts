@@ -25,6 +25,7 @@ describe('student DTO mapping', () => {
       classId: 'class-1',
       dueAt: null,
       createdAt: '2026-01-01',
+      currentGameOrder: 1,
       completed: true,
     }]);
   });

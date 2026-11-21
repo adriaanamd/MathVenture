@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { createMemoryStore } from "../../../../src/lib/offline/classroom/memoryStore.ts";
 
 const authProviderSource = await Deno.readTextFile(
   new URL("../../../../src/lib/auth/useAuth.tsx", import.meta.url),
@@ -67,7 +68,12 @@ Deno.test("initial auth loading is not released by the teacher session callback"
   assertEquals(teacherCallback.includes("setIsLoading(false)"), false);
 });
 
-const { returnToTeacherAccount } = await import("../../../../src/lib/auth/auth.ts");
+const {
+  enrollOfflineDevice,
+  readOfflineSession,
+  readOfflineViewingStudent,
+  returnToTeacherAccount,
+} = await import("../../../../src/lib/auth/auth.ts");
 type TeacherReturnDeps = import("../../../../src/lib/auth/auth.ts").TeacherReturnDeps;
 
 Deno.test("returning to teacher verifies the teacher password before ending student mode", async () => {
@@ -118,4 +124,25 @@ Deno.test("returning to teacher does not end student mode after a wrong password
 
   assertEquals(caughtMessage, "Incorrect teacher password.");
   assertEquals(signedOut, false);
+});
+
+Deno.test("returning to teacher verifies the enrolled password offline", async () => {
+  const store = createMemoryStore();
+  const teacher = { id: "teacher-1", role: "teacher" as const, full_name: "Ana Cruz" };
+  await enrollOfflineDevice(teacher, "secret", store);
+
+  await returnToTeacherAccount("secret", {
+    getTeacherEmail: async () => {
+      throw new Error("teacher session should not be requested offline");
+    },
+    verifyTeacherPassword: async () => {
+      throw new Error("teacher password should not be verified online");
+    },
+    signOutStudent: async () => {
+      throw new Error("student auth should not be signed out online");
+    },
+  }, { store, isOffline: () => true });
+
+  assertEquals(await readOfflineSession(store), teacher);
+  assertEquals(await readOfflineViewingStudent(store), null);
 });

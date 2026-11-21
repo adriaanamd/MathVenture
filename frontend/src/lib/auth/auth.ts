@@ -26,7 +26,7 @@ import {
 import type { OfflineStore } from '../offline/classroom/store';
 import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
 import { getApplicationStorage } from '../offline/sqlite/runtime';
-import { isNetworkFailure, OnlineOnlyError, requireOnlineOnly } from '../offline/onlineOnly';
+import { isBrowserOnline, isNetworkFailure, OnlineOnlyError, requireOnlineOnly } from '../offline/onlineOnly';
 
 export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
@@ -280,6 +280,11 @@ export type TeacherReturnDeps = {
   signOutStudent: () => Promise<TeacherReturnAuthError | null>;
 };
 
+export type TeacherReturnOptions = {
+  store?: OfflineStorage;
+  isOffline?: () => boolean;
+};
+
 const defaultTeacherReturnDeps: TeacherReturnDeps = {
   async getTeacherEmail() {
     const {
@@ -393,28 +398,49 @@ export async function viewStudentAccount(
 export async function returnToTeacherAccount(
   password: string,
   deps: TeacherReturnDeps = defaultTeacherReturnDeps,
+  options: TeacherReturnOptions = {},
 ) {
-  requireOnlineOnly();
   if (!password.trim()) {
     throw new Error('Teacher password is required.');
   }
 
-  const email = await deps.getTeacherEmail();
-  if (!email) {
-    throw new Error('Teacher session unavailable.');
+  const useOfflineTeacherReturn = options.isOffline?.() ?? !isBrowserOnline();
+  if (useOfflineTeacherReturn) {
+    await offlineSignIn(password, options.store);
+    resetActiveAuthClient();
+    await persistOfflineViewingStudent(null, options.store).catch((error: unknown) => {
+      console.warn('Offline student view cleanup skipped', error);
+    });
+    return;
   }
 
-  const verifyError = await deps.verifyTeacherPassword(email, password);
-  if (verifyError) {
-    throw new Error('Incorrect teacher password.');
-  }
+  try {
+    const email = await deps.getTeacherEmail();
+    if (!email) {
+      throw new Error('Teacher session unavailable.');
+    }
 
-  const signOutError = await deps.signOutStudent();
-  if (signOutError) throw new Error(signOutError.message);
-  resetActiveAuthClient();
-  await persistOfflineViewingStudent(null).catch((error: unknown) => {
-    console.warn('Offline student view cleanup skipped', error);
-  });
+    const verifyError = await deps.verifyTeacherPassword(email, password);
+    if (verifyError) {
+      throw new Error('Incorrect teacher password.');
+    }
+
+    const signOutError = await deps.signOutStudent();
+    if (signOutError) throw new Error(signOutError.message);
+    resetActiveAuthClient();
+    await persistOfflineViewingStudent(null).catch((error: unknown) => {
+      console.warn('Offline student view cleanup skipped', error);
+    });
+  } catch (error) {
+    const canUseOfflineFallback = isNetworkFailure(error)
+      || (error instanceof Error && error.message === 'Teacher session unavailable.');
+    if (!canUseOfflineFallback) throw error;
+    await offlineSignIn(password, options.store);
+    resetActiveAuthClient();
+    await persistOfflineViewingStudent(null, options.store).catch((cleanupError: unknown) => {
+      console.warn('Offline student view cleanup skipped', cleanupError);
+    });
+  }
 }
 
 export async function signUp(email: string, password: string, role: Role, fullName: string) {
