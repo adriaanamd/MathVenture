@@ -251,7 +251,7 @@ Add a mocked api.assignmentQuiz.get and render useAssignmentQuiz('assignment-1',
       const { result } = renderHook(() => useAssignmentQuiz('assignment-1', 'lesson-1'), { wrapper });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(result.current.data).toEqual(expect.objectContaining({
+      expect(result.current.data?.state).toEqual(expect.objectContaining({
         assignmentId: 'assignment-1',
         lessonId: 'lesson-1',
         status: 'not_started',
