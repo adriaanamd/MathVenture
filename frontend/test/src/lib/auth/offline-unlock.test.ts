@@ -6,7 +6,13 @@ import { ONLINE_ONLY_OFFLINE_MESSAGE } from '../../../../src/lib/offline/onlineO
 Deno.env.set('VITE_SUPABASE_URL', 'https://example.supabase.co');
 Deno.env.set('VITE_SUPABASE_ANON_KEY', 'test-anon-key');
 
-const { enrollOfflineDevice, offlineSignIn, restoreOfflineSession } = await import('../../../../src/lib/auth/auth.ts');
+const {
+  enrollOfflineDevice,
+  offlineSignIn,
+  persistOfflineViewingStudent,
+  readOfflineViewingStudent,
+  restoreOfflineSession,
+} = await import('../../../../src/lib/auth/auth.ts');
 
 Deno.test('offline sign-in requires internet when no account is enrolled', async () => {
   await assertRejects(
@@ -59,6 +65,22 @@ Deno.test('offline session restores from SQLite without a Supabase request while
   });
 
   assertEquals(session?.role, 'teacher');
+});
+
+Deno.test('selected student view persists in SQLite and can be cleared', async () => {
+  const database = await createMemorySqlite();
+  await enrollOfflineDevice(
+    { id: 'teacher-1', role: 'teacher', full_name: 'Teacher' },
+    'secret',
+    database,
+  );
+
+  const student = { id: 'student-1', role: 'student' as const, full_name: 'Student' };
+  await persistOfflineViewingStudent(student, database);
+  assertEquals(await readOfflineViewingStudent(database), student);
+
+  await persistOfflineViewingStudent(null, database);
+  assertEquals(await readOfflineViewingStudent(database), null);
 });
 
 Deno.test('expired offline lease returns needs-auth and preserves pending local data', async () => {

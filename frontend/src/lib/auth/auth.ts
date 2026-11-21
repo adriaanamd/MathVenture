@@ -51,6 +51,13 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function studentProfileFromValue(value: unknown): UserProfile | null {
+  const profile = objectValue(value) as Partial<UserProfile>;
+  return typeof profile.id === 'string' && profile.role === 'student' && typeof profile.full_name === 'string'
+    ? profile as UserProfile
+    : null;
+}
+
 function getDeviceStorage(): Map<string, string> | Storage {
   return typeof window === 'undefined' ? fallbackDeviceStorage : window.localStorage;
 }
@@ -166,6 +173,7 @@ export async function offlineSignIn(
     });
   } else {
     await storage.put('meta', { key: 'offlineSession', value: enrollment.profile });
+    await storage.delete('meta', 'offlineViewingStudent');
   }
   return enrollment.profile;
 }
@@ -183,6 +191,36 @@ export async function readOfflineSession(
   return typeof profile.id === 'string' && profile.role === 'teacher' && typeof profile.full_name === 'string'
     ? profile as UserProfile
     : null;
+}
+
+export async function readOfflineViewingStudent(
+  store?: OfflineStorage,
+): Promise<UserProfile | null> {
+  const storage = store ?? await getApplicationStorage();
+  const value = isSqliteStorage(storage)
+    ? (await storage.query<SqliteRow>('select viewing_student_json from local_sessions where session_id = ?', ['active']))[0]?.viewing_student_json
+    : (await storage.get('meta', 'offlineViewingStudent'))?.value;
+  return studentProfileFromValue(parseJson(value));
+}
+
+export async function persistOfflineViewingStudent(
+  profile: UserProfile | null,
+  store?: OfflineStorage,
+): Promise<void> {
+  const storage = store ?? await getApplicationStorage();
+  const now = new Date().toISOString();
+  if (isSqliteStorage(storage)) {
+    await storage.execute(
+      'update local_sessions set viewing_student_json = ?, updated_at = ? where session_id = ?',
+      [profile ? JSON.stringify(profile) : null, now, 'active'],
+    );
+    return;
+  }
+  if (profile) {
+    await storage.put('meta', { key: 'offlineViewingStudent', value: profile });
+  } else {
+    await storage.delete('meta', 'offlineViewingStudent');
+  }
 }
 
 export type RestoreOfflineSessionOptions = {
@@ -217,11 +255,8 @@ export async function readOfflineStudentProfile(
   const parsedValue = isSqliteStorage(storage)
     ? { ...objectValue(parseJson((value as SqliteRow | undefined)?.data_json)), ...(value ?? {}) }
     : value;
-  if (!parsedValue || typeof parsedValue !== 'object') return null;
-  const profile = parsedValue as Partial<UserProfile>;
-  return profile.id === studentId && profile.role === 'student' && typeof profile.full_name === 'string'
-    ? profile as UserProfile
-    : null;
+  const profile = studentProfileFromValue(parsedValue);
+  return profile?.id === studentId ? profile : null;
 }
 
 export async function offlineSignOut(store?: OfflineStorage): Promise<void> {
@@ -230,6 +265,7 @@ export async function offlineSignOut(store?: OfflineStorage): Promise<void> {
     await storage.execute('delete from local_sessions where session_id = ?', ['active']);
   } else {
     await storage.delete('meta', 'offlineSession');
+    await storage.delete('meta', 'offlineViewingStudent');
   }
 }
 
@@ -299,26 +335,37 @@ export async function teacherSignIn(email: string, password: string) {
 }
 
 export async function viewStudentAccount(studentId: string): Promise<UserProfile> {
-  const response = await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
-    method: 'POST',
-    body: { studentId },
+  let profile: UserProfile | null = null;
+  const isOffline = typeof navigator !== 'undefined'
+    && (navigator as Navigator & { onLine?: boolean }).onLine === false;
+  if (isOffline) {
+    profile = await readOfflineStudentProfile(studentId);
+    if (!profile) throw new Error('That student is not available in the offline classroom pack.');
+  } else {
+    const response = await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
+      method: 'POST',
+      body: { studentId },
+    });
+
+    if (!isStudentSessionPayload(response)) {
+      throw new Error("We couldn't open that student account.");
+    }
+
+    const { data, error } = await studentSupabase.auth.verifyOtp(
+      buildVerifyOtpParams(response),
+    );
+    if (error) throw error;
+
+    profile = profileFromAuthSession(data.session);
+    if (!profile || profile.role !== 'student') {
+      await studentSupabase.auth.signOut();
+      throw new Error("We couldn't open that student account.");
+    }
+  }
+
+  await persistOfflineViewingStudent(profile).catch((error: unknown) => {
+    console.warn('Offline student view persistence skipped', error);
   });
-
-  if (!isStudentSessionPayload(response)) {
-    throw new Error("We couldn't open that student account.");
-  }
-
-  const { data, error } = await studentSupabase.auth.verifyOtp(
-    buildVerifyOtpParams(response),
-  );
-  if (error) throw error;
-
-  const profile = profileFromAuthSession(data.session);
-  if (!profile || profile.role !== 'student') {
-    await studentSupabase.auth.signOut();
-    throw new Error("We couldn't open that student account.");
-  }
-
   setActiveAuthClient(studentSupabase);
   return profile;
 }
@@ -345,6 +392,9 @@ export async function returnToTeacherAccount(
   const signOutError = await deps.signOutStudent();
   if (signOutError) throw new Error(signOutError.message);
   resetActiveAuthClient();
+  await persistOfflineViewingStudent(null).catch((error: unknown) => {
+    console.warn('Offline student view cleanup skipped', error);
+  });
 }
 
 export async function signUp(email: string, password: string, role: Role, fullName: string) {

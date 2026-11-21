@@ -7,7 +7,7 @@ import {
   getProfile,
   offlineSignIn as unlockOfflineTeacher,
   readOfflineSession,
-  readOfflineStudentProfile,
+  readOfflineViewingStudent,
   restoreOfflineSession,
   returnToTeacherAccount as clearStudentAccount,
   viewStudentAccount as openStudentAccount,
@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { session: result.data.session };
         },
         readOfflineSession: () => readOfflineSession().catch(() => null),
+        readOfflineViewingStudent: () => readOfflineViewingStudent().catch(() => null),
         restoreOfflineSession,
         profileFromSession: (session) => profileFromAuthSession(
           session as Parameters<typeof profileFromAuthSession>[0],
@@ -60,14 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const viewStudentAccount = async (studentId: string) => {
-    const isOffline = typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false;
-    let studentProfile: UserProfile | null = null;
-    if (isOffline) {
-      studentProfile = await readOfflineStudentProfile(studentId);
-      if (!studentProfile) throw new Error('That student is not available in the offline classroom pack.');
-    } else {
-      studentProfile = await openStudentAccount(studentId);
-    }
+    const studentProfile = await openStudentAccount(studentId);
     queryClient.clear();
     setViewingStudent(studentProfile);
   };

@@ -10,6 +10,7 @@ function dependencies(overrides: Partial<Parameters<typeof loadAuthSession>[0]> 
     getProfile: vi.fn().mockResolvedValue(teacher),
     getStudentSession: vi.fn().mockResolvedValue({ session: { user: { id: student.id } } }),
     readOfflineSession: vi.fn().mockResolvedValue(null),
+    readOfflineViewingStudent: vi.fn().mockResolvedValue(null),
     restoreOfflineSession: vi.fn().mockResolvedValue(teacher),
     profileFromSession: vi.fn().mockReturnValue(student),
     ...overrides,
@@ -27,15 +28,18 @@ describe('auth session service', () => {
     });
   });
 
-  it('uses the offline teacher session without opening a student view', async () => {
-    const deps = dependencies({ isOffline: true });
+  it('restores the selected student view during offline startup', async () => {
+    const deps = dependencies({
+      isOffline: true,
+      readOfflineViewingStudent: vi.fn().mockResolvedValue(student),
+    });
 
     const result = await loadAuthSession(deps);
 
     expect(result).toEqual({
       teacherUser: teacher,
-      viewingStudent: null,
-      useStudentAuthClient: false,
+      viewingStudent: student,
+      useStudentAuthClient: true,
     });
     expect(deps.getProfile).not.toHaveBeenCalled();
     expect(deps.restoreOfflineSession).toHaveBeenCalledWith({ online: false });
