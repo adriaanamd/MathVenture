@@ -3,6 +3,7 @@ import { createContext, createElement, useContext, useEffect, useMemo, useReduce
 import { createOfflineRepository, type OfflineRepository } from './repository.ts';
 import { bootstrapRepository, downloadClassroomPack } from './bootstrap.ts';
 import { syncOfflineClassroom } from './index.ts';
+import type { SyncProgress } from './sync.ts';
 import { offlineStatusReducer, type OfflineLifecycleState } from './status.ts';
 import type { BootstrapInvoker } from './bootstrap.ts';
 import { getOrCreateDeviceId } from './crypto.ts';
@@ -21,7 +22,7 @@ const initialState: OfflineLifecycleState = {
 type OfflineClassroomContextValue = OfflineLifecycleState & {
   repository: OfflineRepository;
   bootstrapNow: () => Promise<void>;
-  syncNow: () => Promise<{ completed: number; remaining: number; failed: number } | null>;
+  syncNow: () => Promise<SyncProgress | null>;
 };
 
 const OfflineClassroomContext = createContext<OfflineClassroomContextValue | null>(null);
@@ -36,7 +37,7 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
   const [applicationStorage, setApplicationStorage] = useState<ApplicationStorage | null>(null);
   const [storageError, setStorageError] = useState<Error | null>(null);
-  const syncInFlight = useRef<Promise<{ completed: number; remaining: number; failed: number } | null> | null>(null);
+  const syncInFlight = useRef<Promise<SyncProgress | null> | null>(null);
   const resolvedRepository = useMemo(() => {
     if (repository) return repository;
     if (!applicationStorage) return null;
@@ -66,7 +67,7 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
       void applicationStorage.close().finally(() => resetApplicationDatabaseForTests());
     };
   }, [applicationStorage, repository]);
-  const syncNow = useCallback(async (): Promise<{ completed: number; remaining: number; failed: number } | null> => {
+  const syncNow = useCallback(async (): Promise<SyncProgress | null> => {
     if (!resolvedRepository) return null;
     if (syncInFlight.current) return syncInFlight.current;
 

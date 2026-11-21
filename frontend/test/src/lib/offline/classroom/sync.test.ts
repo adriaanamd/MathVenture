@@ -82,3 +82,22 @@ Deno.test('sync keeps retryable dependent work queued and records an explicit co
   assertEquals((await repository.listConflicts()).length, 1);
   assertEquals((await repository.listConflicts())[0]?.status, 'open');
 });
+
+Deno.test('network batch failures keep operations pending and mark network error', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  await repository.applyMutation({
+    actorId: 'student-1',
+    type: 'assignmentQuiz.start',
+    entityId: 'attempt-1',
+    payload: { assignmentId: 'assignment-1', lessonId: 'colors' },
+    dependencies: [],
+  });
+
+  const result = await syncOutbox(repository, async () => {
+    throw new TypeError('Failed to fetch');
+  });
+
+  assertEquals(result.networkError, true);
+  assertEquals(result.remaining, 1);
+  assertEquals((await repository.getOutbox())[0]?.status, 'pending');
+});

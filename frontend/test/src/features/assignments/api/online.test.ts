@@ -41,3 +41,14 @@ Deno.test('online assignment mutations wait for server acknowledgement', async (
     'not acknowledged',
   );
 });
+
+Deno.test('assignment mutations continue locally when sync reports a network error', async () => {
+  const result = await waitForOnlineAssignmentSync(false, async () => ({
+    completed: 0,
+    remaining: 1,
+    failed: 0,
+    networkError: true,
+  }));
+
+  assertEquals(result?.networkError, true);
+});

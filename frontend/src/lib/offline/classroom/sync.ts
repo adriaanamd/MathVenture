@@ -12,6 +12,7 @@ export type SyncProgress = {
   completed: number;
   remaining: number;
   failed: number;
+  networkError?: boolean;
 };
 
 export type SyncBatchSender = (operations: OfflineOutboxOperation[]) => Promise<OfflineSyncResult[]>;
@@ -104,7 +105,12 @@ export async function syncOutbox(
           lastError: 'The sync request failed before the server acknowledged it.',
         });
       }
-      const finalProgress = { completed, remaining: actionableCount(await repository.getOutbox()), failed };
+      const finalProgress = {
+        completed,
+        remaining: actionableCount(await repository.getOutbox()),
+        failed,
+        networkError: true,
+      };
       onProgress?.(finalProgress);
       return finalProgress;
     }

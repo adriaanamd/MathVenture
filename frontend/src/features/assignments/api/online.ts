@@ -10,6 +10,7 @@ export type AssignmentSyncProgress = {
   completed: number;
   remaining: number;
   failed: number;
+  networkError?: boolean;
 };
 
 export async function loadAssignmentsOnlineFirst<T>(input: {
@@ -33,6 +34,7 @@ export async function waitForOnlineAssignmentSync(
 ): Promise<AssignmentSyncProgress | null> {
   if (isOffline) return null;
   const progress = await syncNow();
+  if (progress?.networkError) return progress;
   if (progress && (progress.remaining > 0 || progress.failed > 0)) {
     throw new Error('The assignment change was not acknowledged by the server yet.');
   }
