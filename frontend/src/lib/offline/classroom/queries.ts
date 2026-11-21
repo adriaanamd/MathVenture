@@ -18,6 +18,18 @@ export function buildOfflinePage<T>(items: T[]) {
   };
 }
 
+export async function hasOfflineClassroom(repository: OfflineRepository, classId?: string): Promise<boolean> {
+  const classrooms = await repository.readCollection('classrooms');
+  return classId === undefined
+    ? classrooms.length > 0
+    : classrooms.some((classroom) => String(classroom.id) === classId);
+}
+
+export async function hasOfflineAssignment(repository: OfflineRepository, assignmentId: string): Promise<boolean> {
+  const assignments = await repository.readCollection('assignments');
+  return assignments.some((assignment) => String(assignment.id) === assignmentId);
+}
+
 export async function readOfflineTeacherClasses(repository: OfflineRepository) {
   const [classrooms, students] = await Promise.all([
     repository.readCollection('classrooms'),

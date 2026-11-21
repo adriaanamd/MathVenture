@@ -4,6 +4,8 @@ import { createOfflineRepository } from '../../../../../src/lib/offline/classroo
 import { createOfflineClass } from '../../../../../src/lib/offline/classroom/mutations.ts';
 import {
   buildOfflinePage,
+  hasOfflineAssignment,
+  hasOfflineClassroom,
   hasPendingClassMutations,
   isClassroomDataReady,
   mergePendingTeacherClasses,
@@ -12,6 +14,21 @@ import {
   readOfflineRoster,
   readPendingClassMutationIds,
 } from '../../../../../src/lib/offline/classroom/queries.ts';
+
+Deno.test('snapshot predicates recognize empty classrooms and cached assignments', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  await repository.putSnapshot('classrooms', [{ id: 'class-1', name: 'Room' }]);
+  await repository.putSnapshot('assignments', [{
+    id: 'assignment-1',
+    class_id: 'class-1',
+    lesson_id: 'lesson-1',
+  }]);
+
+  assertEquals(await hasOfflineClassroom(repository, 'class-1'), true);
+  assertEquals(await hasOfflineClassroom(repository, 'missing-class'), false);
+  assertEquals(await hasOfflineAssignment(repository, 'assignment-1'), true);
+  assertEquals(await hasOfflineAssignment(repository, 'missing-assignment'), false);
+});
 
 Deno.test('cached classroom queries stay enabled for an offline enrolled profile', async () => {
   const repository = createOfflineRepository(createMemoryStore());
