@@ -11,7 +11,7 @@ Deno.test("teacher nav exposes one canonical route per feature", () => {
     { href: "/teacher/classes/class-1/students", labelKey: "teacher.students" },
     { href: "/teacher/classes/class-1/assignments", labelKey: "teacher.assignments" },
     { href: "/teacher/classes/class-1/reports", labelKey: "teacher.reports" },
-    { href: "/teacher/settings", labelKey: "teacher.settings" },
+    { href: "/teacher/classes/class-1/settings", labelKey: "teacher.settings" },
   ]);
 });
 
