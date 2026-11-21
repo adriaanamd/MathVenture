@@ -26,7 +26,7 @@ vi.mock('@/lib/offline/classroom/useOfflineClassroom', () => ({
   useOfflineClassroom: mocks.useOfflineClassroom,
 }));
 
-import { useAssignmentQuiz, useAssignments } from './hooks';
+import { useAssignmentQuiz, useAssignments, useStartAssignmentQuiz } from './hooks';
 
 describe('assignment classroom offline fallback', () => {
   let previousOnline: boolean;
@@ -98,5 +98,53 @@ describe('assignment classroom offline fallback', () => {
       status: 'not_started',
       attemptId: null,
     }));
+  });
+
+  it('starts a cached assignment locally when the sync attempt loses the network', async () => {
+    const syncNow = vi.fn().mockResolvedValue({
+      completed: 0,
+      remaining: 1,
+      failed: 0,
+      networkError: true,
+    });
+    mocks.useAuth.mockReturnValue({
+      user: { id: 'student-1', role: 'student', full_name: 'Student' },
+      isLoading: false,
+    });
+    mocks.useOfflineClassroom.mockReturnValue({
+      repository: {
+        readCollection: vi.fn().mockResolvedValue([]),
+        applyMutation: vi.fn().mockResolvedValue({
+          operationId: 'operation-1',
+          deviceId: 'device-1',
+          actorId: 'student-1',
+          type: 'assignmentQuiz.start',
+          entityId: 'attempt-1',
+          payload: {},
+          dependencies: [],
+          createdAt: '2026-11-21T00:00:00.000Z',
+          status: 'pending',
+          attemptCount: 0,
+          lastError: null,
+        }),
+      } as unknown as OfflineRepository,
+      syncNow,
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result } = renderHook(() => useStartAssignmentQuiz(), { wrapper });
+
+    await expect(result.current.mutateAsync({ assignmentId: 'assignment-1', lessonId: 'lesson-1' }))
+      .resolves.toEqual({
+        state: expect.objectContaining({
+          assignmentId: 'assignment-1',
+          lessonId: 'lesson-1',
+          status: 'in_progress',
+        }),
+      });
+    expect(syncNow).toHaveBeenCalledOnce();
   });
 });
