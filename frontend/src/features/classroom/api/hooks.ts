@@ -95,7 +95,14 @@ export function useClasses() {
           });
         }
         const cached = await readOfflineClassroom(repository, user.role);
-        if (browserIsOffline()) return toLegacyClassesResponse({ classroom: cached });
+        return loadOnlineFirst({
+          isOffline: browserIsOffline(),
+          readCache: async () => cached || browserIsOffline() ? toLegacyClassesResponse({ classroom: cached }) : null,
+          readServer: async () => {
+            const data = await api.classes.list();
+            return toLegacyClassesResponse({ classroom: data.classroom ?? null });
+          },
+        });
       }
       const data = await api.classes.list();
       if (user?.role === 'teacher' && data.classes) {
@@ -160,7 +167,16 @@ export function useStudentClassroom() {
     queryFn: async () => {
       if (user) {
         const cached = await readOfflineClassroom(repository, 'student');
-        if (cached || browserIsOffline()) return { classroom: cached };
+        return loadOnlineFirst({
+          isOffline: browserIsOffline(),
+          readCache: async () => cached || browserIsOffline() ? { classroom: cached } : null,
+          readServer: async () => {
+            const data = await api.classes.list();
+            return {
+              classroom: data.classroom && 'teacherName' in data.classroom ? data.classroom : null,
+            };
+          },
+        });
       }
       const data = await api.classes.list();
       return {
@@ -179,13 +195,12 @@ export function useClassRoster(classId?: string) {
     queryKey: classroomKeys.roster(classId ?? null),
     queryFn: async ({ pageParam }) => {
       const cached = await readOfflineRoster(repository, classId);
-      if (browserIsOffline()) return cached;
-      try {
-        return await api.classes.roster(classId!, { cursor: pageParam });
-      } catch (error) {
-        if (await readOfflineClassroom(repository, 'teacher', classId)) return cached;
-        throw error;
-      }
+      const hasClassroom = await readOfflineClassroom(repository, 'teacher', classId);
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => hasClassroom || browserIsOffline() ? cached : null,
+        readServer: () => api.classes.roster(classId!, { cursor: pageParam }),
+      });
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
@@ -201,13 +216,13 @@ export function useClassRosterStudent(classId?: string, studentId?: string | nul
     queryKey: classroomKeys.rosterStudent(classId ?? null, studentId),
     queryFn: async () => {
       const cached = (await readOfflineRoster(repository, classId)).students.filter((student) => student.id === studentId);
-      if (browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
-      try {
-        return await api.classes.rosterStudent(classId!, studentId!);
-      } catch (error) {
-        if (cached.length) return { students: cached, page: { nextCursor: null, hasMore: false } };
-        throw error;
-      }
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => cached.length || browserIsOffline()
+          ? { students: cached, page: { nextCursor: null, hasMore: false } }
+          : null,
+        readServer: () => api.classes.rosterStudent(classId!, studentId!),
+      });
     },
     enabled: Boolean(classId && studentId) && isAuthReadyForData(isLoading, user),
   });

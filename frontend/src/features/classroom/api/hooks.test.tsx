@@ -23,7 +23,7 @@ vi.mock('@/lib/offline/classroom/useOfflineClassroom', () => ({
   useOfflineClassroom: mocks.useOfflineClassroom,
 }));
 
-import { useClasses, useClassRoster, useTeacherClassroom } from './hooks';
+import { useClasses, useClassRoster, useStudentClassroom, useTeacherClassroom } from './hooks';
 
 describe('classroom offline fallback', () => {
   let previousOnline: boolean;
@@ -94,5 +94,37 @@ describe('classroom offline fallback', () => {
       pages: [{ students: [], page: { nextCursor: null, hasMore: false } }],
       pageParams: [null],
     });
+  });
+
+  it('uses the cached student classroom when the class-list fetch fails', async () => {
+    mocks.useAuth.mockReturnValue({
+      user: { id: 'student-1', role: 'student', full_name: 'Student' },
+      isLoading: false,
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result } = renderHook(() => useStudentClassroom(), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.classroom).toEqual(expect.objectContaining({ id: 'class-1' }));
+  });
+
+  it('uses the cached student class list when the class-list fetch fails', async () => {
+    mocks.useAuth.mockReturnValue({
+      user: { id: 'student-1', role: 'student', full_name: 'Student' },
+      isLoading: false,
+    });
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    const { result } = renderHook(() => useClasses(), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.classes).toEqual([expect.objectContaining({ id: 'class-1' })]);
   });
 });
