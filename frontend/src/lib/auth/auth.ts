@@ -26,7 +26,7 @@ import {
 import type { OfflineStore } from '../offline/classroom/store';
 import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
 import { getApplicationStorage } from '../offline/sqlite/runtime';
-import { OnlineOnlyError, requireOnlineOnly } from '../offline/onlineOnly';
+import { isNetworkFailure, OnlineOnlyError, requireOnlineOnly } from '../offline/onlineOnly';
 
 export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
@@ -334,36 +334,56 @@ export async function teacherSignIn(email: string, password: string) {
   return data;
 }
 
-export async function viewStudentAccount(studentId: string): Promise<UserProfile> {
+type StudentAccountViewOptions = {
+  store?: OfflineStorage;
+  isOffline?: () => boolean;
+  invokeTeacher?: (
+    name: string,
+    options: { method: 'POST'; body: { studentId: string } },
+  ) => Promise<unknown>;
+};
+
+export async function viewStudentAccount(
+  studentId: string,
+  options: StudentAccountViewOptions = {},
+): Promise<UserProfile> {
   let profile: UserProfile | null = null;
-  const isOffline = typeof navigator !== 'undefined'
-    && (navigator as Navigator & { onLine?: boolean }).onLine === false;
+  const isOffline = options.isOffline?.() ?? (typeof navigator !== 'undefined'
+    && (navigator as Navigator & { onLine?: boolean }).onLine === false);
   if (isOffline) {
-    profile = await readOfflineStudentProfile(studentId);
+    profile = await readOfflineStudentProfile(studentId, options.store);
     if (!profile) throw new Error('That student is not available in the offline classroom pack.');
   } else {
-    const response = await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
-      method: 'POST',
-      body: { studentId },
-    });
+    try {
+      const response = options.invokeTeacher
+        ? await options.invokeTeacher('student-view-as', { method: 'POST', body: { studentId } })
+        : await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
+          method: 'POST',
+          body: { studentId },
+        });
 
-    if (!isStudentSessionPayload(response)) {
-      throw new Error("We couldn't open that student account.");
-    }
+      if (!isStudentSessionPayload(response)) {
+        throw new Error("We couldn't open that student account.");
+      }
 
-    const { data, error } = await studentSupabase.auth.verifyOtp(
-      buildVerifyOtpParams(response),
-    );
-    if (error) throw error;
+      const { data, error } = await studentSupabase.auth.verifyOtp(
+        buildVerifyOtpParams(response),
+      );
+      if (error) throw error;
 
-    profile = profileFromAuthSession(data.session);
-    if (!profile || profile.role !== 'student') {
-      await studentSupabase.auth.signOut();
-      throw new Error("We couldn't open that student account.");
+      profile = profileFromAuthSession(data.session);
+      if (!profile || profile.role !== 'student') {
+        await studentSupabase.auth.signOut();
+        throw new Error("We couldn't open that student account.");
+      }
+    } catch (error) {
+      if (!isNetworkFailure(error)) throw error;
+      profile = await readOfflineStudentProfile(studentId, options.store);
+      if (!profile) throw new Error('That student is not available in the offline classroom pack.');
     }
   }
 
-  await persistOfflineViewingStudent(profile).catch((error: unknown) => {
+  await persistOfflineViewingStudent(profile, options.store).catch((error: unknown) => {
     console.warn('Offline student view persistence skipped', error);
   });
   setActiveAuthClient(studentSupabase);

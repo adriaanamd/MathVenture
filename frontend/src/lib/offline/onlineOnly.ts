@@ -16,7 +16,7 @@ export function isNetworkFailure(error: unknown): boolean {
   const text = error instanceof Error
     ? `${error.name} ${error.message}`
     : typeof error === 'string' ? error : '';
-  return /failed to fetch|fetch failed|networkerror|network request failed|load failed|internet disconnected|network changed/i.test(text);
+  return /failed to fetch|fetch failed|networkerror|network request failed|load failed|internet disconnected|network changed|failed to send a request to the edge function/i.test(text);
 }
 
 export function requireOnlineOnly(isOnline = isBrowserOnline()): void {

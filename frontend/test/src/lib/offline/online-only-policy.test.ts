@@ -23,5 +23,6 @@ Deno.test('online-only policy allows connected actions', () => {
 
 Deno.test('network failure detection distinguishes transport errors from auth errors', () => {
   assertEquals(isNetworkFailure(new TypeError('Failed to fetch')), true);
+  assertEquals(isNetworkFailure(new Error('Failed to send a request to the Edge Function')), true);
   assertEquals(isNetworkFailure(new Error('Invalid login credentials')), false);
 });
