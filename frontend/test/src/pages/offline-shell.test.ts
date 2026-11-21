@@ -34,3 +34,17 @@ Deno.test('offline classroom provider declares callbacks before its loading retu
     throw new Error('Pending operations must be retried automatically while online.');
   }
 });
+
+Deno.test('offline outbox sync uses the active signed-in auth client', async () => {
+  const provider = await Deno.readTextFile(new URL('../../../src/lib/offline/classroom/useOfflineClassroom.ts', import.meta.url));
+  const syncStart = provider.indexOf('const syncNow = useCallback');
+  const syncEnd = provider.indexOf('const bootstrapNow = useCallback');
+  const syncCallback = provider.slice(syncStart, syncEnd);
+
+  if (!syncCallback.includes('return invokeFunction<unknown>(name, options);')) {
+    throw new Error('Offline outbox sync must use the active auth client so student sessions can sync their work.');
+  }
+  if (syncCallback.includes('return invokeTeacherFunction<unknown>(name, options);')) {
+    throw new Error('Offline outbox sync must not force the teacher auth client.');
+  }
+});

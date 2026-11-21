@@ -76,8 +76,8 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
       dispatch({ type: 'sync-start' });
       try {
         const request = invoke ?? (async (name, options) => {
-          const { invokeTeacherFunction } = await import('../../api/client.ts');
-          return invokeTeacherFunction<unknown>(name, options);
+          const { invokeFunction } = await import('../../api/client.ts');
+          return invokeFunction<unknown>(name, options);
         });
         const progress = await syncOfflineClassroom(activeRepository, request);
         const summary = await activeRepository.getSyncSummary();
