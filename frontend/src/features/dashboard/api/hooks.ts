@@ -4,6 +4,7 @@ import { isAuthReadyForData } from '@features/auth/model/session-state';
 import type { StudentDashboard, TeacherDashboard } from '@/lib/api/client';
 import { api } from '@/lib/api/client';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
+import { hasOfflineClassroom } from '@/lib/offline/classroom/queries';
 import {
   buildOfflineStudentDashboard,
   buildOfflineTeacherDashboard,
@@ -26,7 +27,8 @@ export function useStudentDashboard() {
         isOffline: browserIsOffline(),
         readCache: async () => {
           const attempts = await repository.readCollection('attempts');
-          if (!attempts.length && !browserIsOffline()) return null;
+          const hasClassroom = await hasOfflineClassroom(repository);
+          if (!attempts.length && !hasClassroom && !browserIsOffline()) return null;
           return buildOfflineStudentDashboard(attempts);
         },
         readServer: () => api.dashboard.student(),

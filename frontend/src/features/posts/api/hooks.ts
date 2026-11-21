@@ -4,6 +4,7 @@ import { isAuthReadyForData } from '@features/auth/model/session-state';
 import { api } from '@/lib/api/client';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 import { createOfflinePost } from '@/lib/offline/classroom/mutations';
+import { hasOfflineClassroom } from '@/lib/offline/classroom/queries';
 import { readOfflinePosts } from '@/lib/offline/classroom/reports';
 import { postKeys } from '@infrastructure/api/queryKeys';
 import { loadOnlineFirst } from '@infrastructure/api/online-first';
@@ -24,7 +25,8 @@ export function useClassPosts(classId: string) {
         isOffline: browserIsOffline(),
         readCache: async () => {
           const posts = await readOfflinePosts(repository, classId);
-          if (!posts.length && !browserIsOffline()) return null;
+          const hasClassroom = await hasOfflineClassroom(repository, classId);
+          if (!posts.length && !hasClassroom && !browserIsOffline()) return null;
           return { posts };
         },
         readServer: () => api.posts.list(classId),
