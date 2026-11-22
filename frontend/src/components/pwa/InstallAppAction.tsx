@@ -40,12 +40,27 @@ export function InstallAppAction({
   }
 
   if (canInstall) {
+    if (compact) {
+      return (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={className}
+          onClick={() => void handleInstall()}
+        >
+          <Download aria-hidden="true" />
+          <span>Install MathVenture</span>
+        </Button>
+      );
+    }
+
     return (
       <div className="flex min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:items-center">
         <Button
           type="button"
-          variant={compact ? 'ghost' : 'outline'}
-          size={compact ? 'sm' : 'lg'}
+          variant="outline"
+          size="lg"
           className={className}
           onClick={() => void handleInstall()}
         >

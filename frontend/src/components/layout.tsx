@@ -157,21 +157,22 @@ export function TopNav() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4">
         <div className="min-w-0 flex items-center gap-2">
-          <Link href={user ? (user.role === 'student' ? '/student' : '/teacher') : '/'}>
-            <div className="flex min-w-0 cursor-pointer items-center gap-2 group">
-              <Compass className="h-8 w-8 text-primary group-hover:rotate-45 transition-transform" />
-              <span className="truncate font-display text-xl font-bold tracking-tight text-primary sm:text-2xl">MathVenture</span>
-            </div>
+          <Link
+            href={user ? (user.role === 'student' ? '/student' : '/teacher') : '/'}
+            className="flex min-w-0 cursor-pointer items-center gap-1.5 group sm:gap-2"
+          >
+            <Compass className="h-7 w-7 shrink-0 text-primary group-hover:rotate-45 transition-transform sm:h-8 sm:w-8" />
+            <span className="truncate font-display text-lg font-bold tracking-tight text-primary sm:text-2xl">MathVenture</span>
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
           <InstallAppAction compact className="hidden sm:inline-flex" />
           <OfflineStatusIndicator />
-          <Button variant="ghost" size="sm" onClick={toggleLang} className="gap-2 font-bold text-muted-foreground">
-            <Globe className="h-4 w-4" />
+          <Button variant="ghost" size="sm" onClick={toggleLang} className="gap-1.5 px-2 font-bold text-muted-foreground sm:gap-2 sm:px-4">
+            <Globe className="h-4 w-4 shrink-0" />
             {lang === 'en' ? 'EN' : 'TL'}
           </Button>
 
@@ -181,7 +182,7 @@ export function TopNav() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2 font-bold text-muted-foreground hover:text-foreground">
+                  <Button variant="ghost" size="sm" className="gap-2 px-2 font-bold text-muted-foreground hover:text-foreground md:px-4">
                     <span className="hidden md:inline-block">{user.full_name}</span>
                     {isTeacher ? <User className="h-5 w-5" /> : (
                       <>
