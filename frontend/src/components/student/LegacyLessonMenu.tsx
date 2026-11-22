@@ -66,6 +66,9 @@ export function LegacyLessonMenu({
           </div>
         ) : topicState.map((topic) => {
           const isHighlighted = highlightedLessonId === topic.id;
+          const topicLabel = topic.gameTitle
+            ? `${topic.fallbackLabel} — ${topic.gameTitle}`
+            : topic.fallbackLabel;
 
           return (
             <Button
@@ -74,10 +77,10 @@ export function LegacyLessonMenu({
               variant="ghost"
               onClick={() => onSelect(topic.href)}
               aria-label={showStatus
-                ? `${topic.fallbackLabel} — ${topic.gameTitle ?? "Classroom quiz"}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`
-                : `${topic.fallbackLabel} — ${topic.gameTitle ?? "Classroom quiz"}`}
+                ? `${topicLabel}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`
+                : topicLabel}
               className={cn(
-                "student-trail-stop group grid min-h-[72px] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:px-4",
+                "student-trail-stop group grid h-auto min-h-[72px] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:px-4",
                 showStatus
                   ? "grid-cols-[2.75rem_minmax(0,1fr)_auto] md:grid-cols-[3rem_minmax(0,1fr)_auto]"
                   : "grid-cols-[2.75rem_minmax(0,1fr)] md:grid-cols-[3rem_minmax(0,1fr)]",
@@ -89,20 +92,23 @@ export function LegacyLessonMenu({
               </span>
 
               <div className="min-w-0">
-                {!topic.isBroken && (
+                {topic.isBroken ? (
+                  <span className="student-trail-stop__label block truncate text-lg font-extrabold tracking-tight">
+                    {topic.fallbackLabel}
+                  </span>
+                ) : (
                   <img
                     src={topic.assetSrc}
                     alt={topic.fallbackLabel}
-                    className="max-h-8 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
+                    className="max-h-10 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
                     onError={() => setBrokenImages((current) => ({ ...current, [topic.id]: true }))}
                   />
                 )}
-                <span className="student-trail-stop__label block truncate text-base font-extrabold tracking-tight">
-                  {topic.fallbackLabel}
-                </span>
-                <span className="student-trail-stop__game block truncate text-sm font-bold opacity-75">
-                  {topic.gameTitle ?? "Classroom quiz"}
-                </span>
+                {topic.gameTitle && (
+                  <span className="student-trail-stop__game mt-0.5 block truncate text-sm font-bold opacity-75">
+                    {topic.gameTitle}
+                  </span>
+                )}
               </div>
 
               {showStatus && (

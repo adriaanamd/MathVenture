@@ -23,3 +23,9 @@ Deno.test("lesson menu can hide assignment status for public Free Play", () => {
   assertEquals(source.includes("showStatus = true"), true);
   assertEquals(source.includes("showStatus &&"), true);
 });
+
+Deno.test("lesson menu only shows fallback label when image is broken and game title when assigned", () => {
+  assertEquals(source.includes("topic.isBroken ? ("), true);
+  assertEquals(source.includes("{topic.gameTitle && ("), true);
+  assertEquals(source.includes('topic.gameTitle ?? "Classroom quiz"'), false);
+});
