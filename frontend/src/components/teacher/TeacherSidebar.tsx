@@ -114,7 +114,10 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
         type="button"
         variant="outline"
         size="icon"
-        className="fixed right-4 top-[4.75rem] z-40 border-[var(--teacher-moss)]/30 bg-[var(--teacher-sand)] text-[var(--teacher-ink)] lg:hidden"
+        className={cn(
+          'fixed right-4 top-[4.75rem] z-40 border-[var(--teacher-moss)]/30 bg-[var(--teacher-sand)] text-[var(--teacher-ink)] lg:hidden',
+          mobileOpen && 'hidden',
+        )}
         aria-expanded={mobileOpen}
         aria-controls="teacher-mobile-nav"
         aria-label={mobileOpen ? 'Close teacher navigation' : 'Open teacher navigation'}
@@ -124,7 +127,7 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
       </Button>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-16 z-50 lg:hidden">
           <button
             type="button"
             className="absolute inset-0 bg-[var(--teacher-ink)]/35"
@@ -133,16 +136,17 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
           />
           <aside
             id="teacher-mobile-nav"
-            className="relative flex h-full w-[min(88vw,22rem)] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-5 shadow-xl"
+            className="relative flex h-full w-[min(88vw,22rem)] flex-col overflow-y-auto border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-5 shadow-xl"
           >
             <div className="flex items-center justify-between gap-4">
-              <div className="rounded-2xl border border-[var(--teacher-moss)]/15 bg-[var(--teacher-oat)]/30 flex-1 px-4 py-3">
+              <div className="min-w-0 flex-1 rounded-2xl border border-[var(--teacher-moss)]/15 bg-[var(--teacher-oat)]/30 px-4 py-3">
                 {identity}
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="shrink-0"
                 aria-label="Close teacher navigation"
                 onClick={() => setMobileOpen(false)}
               >
