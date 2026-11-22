@@ -183,8 +183,12 @@ export function TopNav() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2 font-bold text-muted-foreground hover:text-foreground">
                     <span className="hidden md:inline-block">{user.full_name}</span>
-                    <Menu className="h-5 w-5 md:hidden" />
-                    <User className="h-5 w-5 hidden md:block" />
+                    {isTeacher ? <User className="h-5 w-5" /> : (
+                      <>
+                        <Menu className="h-5 w-5 md:hidden" />
+                        <User className="h-5 w-5 hidden md:block" />
+                      </>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 font-bold">
