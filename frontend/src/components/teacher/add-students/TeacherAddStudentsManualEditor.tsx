@@ -33,7 +33,7 @@ export function TeacherAddStudentsManualEditor({
   const [error, setError] = React.useState<string | null>(null);
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] p-5">
+    <Card className="flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-[24px] p-5 sm:min-h-0">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
         {rows.map((row) => (
           <div

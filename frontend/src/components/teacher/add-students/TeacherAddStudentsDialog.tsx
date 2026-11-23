@@ -42,6 +42,39 @@ export function TeacherAddStudentsDialog({
     createInitialTeacherAddStudentsFlowState,
   );
   const [error, setError] = React.useState<string | null>(null);
+  const [viewportStyle, setViewportStyle] = React.useState<
+    React.CSSProperties | undefined
+  >(undefined);
+
+  React.useEffect(() => {
+    if (
+      !isMobile ||
+      !open ||
+      typeof window === 'undefined' ||
+      !window.visualViewport
+    ) {
+      setViewportStyle(undefined);
+      return;
+    }
+
+    const viewport = window.visualViewport;
+    const updateViewport = () => {
+      setViewportStyle({
+        top: `${viewport.offsetTop}px`,
+        height: `${viewport.height}px`,
+        maxHeight: `${viewport.height}px`,
+        bottom: 'auto',
+      });
+    };
+
+    updateViewport();
+    viewport.addEventListener('resize', updateViewport);
+    viewport.addEventListener('scroll', updateViewport);
+    return () => {
+      viewport.removeEventListener('resize', updateViewport);
+      viewport.removeEventListener('scroll', updateViewport);
+    };
+  }, [isMobile, open]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
@@ -135,8 +168,11 @@ export function TeacherAddStudentsDialog({
 
   if (isMobile) {
     return (
-      <Drawer fixed open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent className="teacher-drawer h-[100dvh] max-h-[100dvh] overflow-hidden rounded-none border-0 bg-[var(--teacher-sand)] px-4 pb-6">
+      <Drawer fixed repositionInputs={false} open={open} onOpenChange={handleOpenChange}>
+        <DrawerContent
+          style={viewportStyle}
+          className="teacher-drawer top-0 mt-0 h-[100dvh] max-h-[100dvh] overflow-hidden rounded-none border-0 bg-[var(--teacher-sand)] px-4 pb-6"
+        >
           <DrawerHeader className="px-0 pt-6 text-left">
             <DrawerTitle>Add Students</DrawerTitle>
             <DrawerDescription>

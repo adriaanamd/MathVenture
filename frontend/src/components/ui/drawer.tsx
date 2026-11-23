@@ -4,10 +4,12 @@ import { Drawer as DrawerPrimitive } from 'vaul';
 
 const Drawer = ({
   shouldScaleBackground = true,
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
+    repositionInputs={repositionInputs}
     {...props}
   />
 );
