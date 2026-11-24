@@ -158,7 +158,7 @@ receive a completed game specification using the standard fields above.
 | D | `colors:3` | Rainbow Color Adventure Deluxe | Identify colors through staged play |
 | E | `colors:4` | Rainbow Galaxy Explorer | Identify colors in a visual environment |
 | F | `colors:5` | Choose Which Color | Choose the correct color |
-| G | `colors:6` | Multiple Choice | Select the correct color representation |
+| G | `colors:6` | Little Color Artists | Create an original picture using at least three colors |
 
 ### II. Shapes — 8 games
 

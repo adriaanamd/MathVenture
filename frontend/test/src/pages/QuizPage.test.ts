@@ -22,18 +22,18 @@ Deno.test("lesson slide navigation uses a responsive mobile grid with a separate
   assertEquals(source.includes("w-full min-w-0 gap-2 font-bold sm:col-start-3 sm:row-start-1 sm:w-auto"), true);
 });
 
-Deno.test("colors quiz includes multiple choice as its seventh activity", async () => {
+Deno.test("colors quiz includes Little Color Artists as its seventh activity", async () => {
   const source = await readSource(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
   assertEquals(source.includes("Array(gameCount).fill({})"), true);
   assertEquals(source.includes("topic === 'colors' && currentIndex === 6"), true);
-  assertEquals(source.includes("<MultipleChoice"), true);
+  assertEquals(source.includes("<LittleColorArtists"), true);
 });
 
-Deno.test("Free Play colors ends before the classroom-only multiple choice activity", async () => {
+Deno.test("Free Play colors includes Little Color Artists as its final activity", async () => {
   const source = await readSource(new URL("../../../src/lib/games/free-play.ts", import.meta.url));
 
-  assertEquals(source.includes("colors: GAME_COUNT_BY_TOPIC.colors - 1"), true);
+  assertEquals(source.includes("colors: GAME_COUNT_BY_TOPIC.colors"), true);
 });
 
 Deno.test("assigned lessons identify classroom quiz mode and use assignment quiz persistence", async () => {
