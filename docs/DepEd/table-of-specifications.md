@@ -5,7 +5,7 @@
 > **Grade:** Kindergarten
 > **Grading period:** 1st to 4th
 > **School year:** 2025–2026
-> **Scope:** 9 topics and 80 game activities currently cataloged in MathVenture
+> **Scope:** 9 topics and 81 game activities currently cataloged in MathVenture
 
 ## 1. Purpose and use
 
@@ -49,7 +49,7 @@ this definition consistently throughout the document.
 | Grading period | 1st to 4th |
 | School year | 2025–2026 |
 | Total proposed POIs | 20 |
-| Total cataloged games | 80 |
+| Total cataloged games | 81 |
 | Assessment basis | Game performance, teacher observation, learner work, and recorded evidence |
 | Document status | Draft for validation |
 
@@ -245,7 +245,7 @@ receive a completed game specification using the standard fields above.
 | E | `measurement:4` | Magic Rainbow Bridge | Apply measurement or comparison |
 | F | `measurement:5` | Growing Inchworm | Compare growth, size, or length |
 
-### VIII. Comparison — 11 games
+### VIII. Comparison — 12 games
 
 | Letter | Game ID | Game | Primary evidence to verify |
 |---|---|---|---|
@@ -260,6 +260,7 @@ receive a completed game specification using the standard fields above.
 | I | `comparison:8` | Which is Longer? | Compare length |
 | J | `comparison:9` | Heavy or Light? | Compare weight or mass |
 | K | `comparison:10` | Catch & Measure! | Compare or measure an attribute |
+| L | `comparison:11` | Little Math Detectives | Compare two groups using more, less, or equal |
 
 ### IX. Clock and Time — 7 games
 

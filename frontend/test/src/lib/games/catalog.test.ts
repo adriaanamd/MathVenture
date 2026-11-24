@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import { GAME_CATALOG, GAME_COUNT_BY_TOPIC, getGameCatalogEntry } from "../../../../src/lib/games/catalog.ts";
 
 Deno.test("GAME_CATALOG exposes every playable game in stable topic order", () => {
-  assertEquals(GAME_CATALOG.length, 80);
+  assertEquals(GAME_CATALOG.length, 81);
   assertEquals(GAME_CATALOG[0], {
     topicId: "colors",
     gameId: "colors:0",
@@ -21,6 +21,8 @@ Deno.test("GAME_CATALOG exposes every playable game in stable topic order", () =
   assertEquals(getGameCatalogEntry("addition", 15), null);
   assertEquals(getGameCatalogEntry("colors", 6)?.gameId, "colors:6");
   assertEquals(getGameCatalogEntry("colors", 7), null);
+  assertEquals(getGameCatalogEntry("comparison", 11)?.title, "Little Math Detectives");
+  assertEquals(getGameCatalogEntry("comparison", 12), null);
   assertEquals(getGameCatalogEntry("numbers", 7)?.gameId, "numbers:7");
   assertEquals(getGameCatalogEntry("numbers", 8), null);
   assertEquals(getGameCatalogEntry("subtraction", 8)?.gameId, "subtraction:8");
@@ -37,7 +39,7 @@ Deno.test("quiz catalog counts exclude non-quiz drawing activities", () => {
     subtraction: 9,
     numbers: 8,
     measurement: 6,
-    comparison: 11,
+    comparison: 12,
     clock: 7,
   });
 });

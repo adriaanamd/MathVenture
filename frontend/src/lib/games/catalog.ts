@@ -6,7 +6,7 @@ export const GAME_COUNT_BY_TOPIC = {
   subtraction: 9,
   numbers: 8,
   measurement: 6,
-  comparison: 11,
+  comparison: 12,
   clock: 7,
 } as const;
 
@@ -28,7 +28,7 @@ const GAME_TITLES: Record<TeacherTopicId, readonly string[]> = {
   subtraction: ["Balloon Pop Subtraction", "Fruit Subtraction", "Gentle Math Drift", "Subtraction Adventure", "Subtraction Pop", "Magical Dino Egg Hatchery", "Farmyard Hide & Seek", "Feed the Hippo", "Space Blast"],
   numbers: ["Drag the Correct Number", "Count & Match Adventure", "Animal Pop", "Feed the Hungry Monster", "Whack-a-Mole", "Deep Diver: Number Explorer", "The Magic Toy Factory", "Number Monster"],
   measurement: ["Slow & Fun Measurement", "Small & Short", "Heavy or Light?", "The Tiny Builder's Ruler", "Magic Rainbow Bridge", "Growing Inchworm"],
-  comparison: ["Paghahambing ng Mahaba, Mas Mahaba, Pinakamahaba", "Pag-aayos ng Laki", "Marami o Kaunti?", "Mataas o Mababa?", "Match Big & Small Letters", "The Barnyard Balance", "The Sky Explorer", "The Mad Scientist's Liquid Lab", "Which is Longer?", "Heavy or Light?", "Catch & Measure!"],
+  comparison: ["Paghahambing ng Mahaba, Mas Mahaba, Pinakamahaba", "Pag-aayos ng Laki", "Marami o Kaunti?", "Mataas o Mababa?", "Match Big & Small Letters", "The Barnyard Balance", "The Sky Explorer", "The Mad Scientist's Liquid Lab", "Which is Longer?", "Heavy or Light?", "Catch & Measure!", "Little Math Detectives"],
   clock: ["Time Adventure", "Time Matcher", "Drag the Matching Clock", "Fill in the Missing Time", "Daily Routine Time", "Build the Clock", "What Time Is It?"],
 };
 

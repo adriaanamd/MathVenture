@@ -80,6 +80,7 @@ import { MadScientist } from '@/components/games/8-comparison/MadScientist';
 import { WhichIsLonger } from '@/components/games/8-comparison/WhichIsLonger';
 import { WhichIsComp } from '@/components/games/8-comparison/WhichIsComp';
 import { CatchFall } from '@/components/games/8-comparison/CatchFall';
+import { LittleMathDetectives } from '@/components/games/8-comparison/LittleMathDetectives';
 import { TimeAdventure } from '@/components/games/9-clock/TimeAdventure';
 import { TimeMatcher } from '@/components/games/9-clock/TimeMatcher';
 import { DragMatchingClock } from '@/components/games/9-clock/DragMatchingClock';
@@ -860,6 +861,8 @@ export function QuizPage() {
           <WhichIsComp onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 10 ? (
           <CatchFall onComplete={handleStructuredGameComplete} />
+        ) : topic === 'comparison' && currentIndex === 11 ? (
+          <LittleMathDetectives onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 0 ? (
           <TimeAdventure onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 1 ? (

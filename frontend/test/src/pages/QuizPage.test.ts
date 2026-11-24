@@ -36,6 +36,13 @@ Deno.test("Free Play colors includes Little Color Artists as its final activity"
   assertEquals(source.includes("colors: GAME_COUNT_BY_TOPIC.colors"), true);
 });
 
+Deno.test("comparison quiz includes Little Math Detectives as its fixed final activity", async () => {
+  const source = await readSource(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("topic === 'comparison' && currentIndex === 11"), true);
+  assertEquals(source.includes("<LittleMathDetectives"), true);
+});
+
 Deno.test("assigned lessons identify classroom quiz mode and use assignment quiz persistence", async () => {
   const source = await readSource(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 

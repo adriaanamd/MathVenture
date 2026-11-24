@@ -79,4 +79,11 @@ export const comparisonData: Question[] = [
     correctFeedback: '',
     wrongFeedback: ''
   },
+  {
+    id: 'comparison_game_11',
+    prompt: 'LittleMathDetectives',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
   ];
