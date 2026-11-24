@@ -182,7 +182,7 @@ export const lessonContent: Record<string, TopicLesson> = {
       { id: 'n-7', image: '67.png', labelEn: 'Seven', labelFil: 'Pito', audioEn: aud('67.mp3'), audioFil: aud('6v7.MP3') },
       { id: 'n-8', image: '68.png', labelEn: 'Eight', labelFil: 'Walo', audioEn: aud('68.mp3'), audioFil: aud('6v8.MP3') },
       { id: 'n-9', image: '69.png', labelEn: 'Nine', labelFil: 'Siyam', audioEn: aud('69.mp3'), audioFil: aud('6v9.MP3') },
-      { id: 'n-10', image: '610.png', labelEn: 'Ten', labelFil: 'Sampu', audioEn: aud('610.mp3'), audioFil: aud('6v10.MP3') },
+      { id: 'n-10', image: '610-lesson.jpg', labelEn: 'Ten', labelFil: 'Sampu', audioEn: aud('610.mp3'), audioFil: aud('6v10.MP3') },
       { id: 'n-11', image: '611.png', labelEn: 'Eleven', labelFil: 'Labing-isa', audioEn: aud('611.mp3'), audioFil: aud('6v11.MP3') },
       { id: 'n-12', image: '612.png', labelEn: 'Twelve', labelFil: 'Labindalawa', audioEn: aud('612.mp3'), audioFil: aud('6v12.MP3') },
       { id: 'n-13', image: '613.png', labelEn: 'Thirteen', labelFil: 'Labintatlo', audioEn: aud('613.mp3'), audioFil: aud('6v13.MP3') },
