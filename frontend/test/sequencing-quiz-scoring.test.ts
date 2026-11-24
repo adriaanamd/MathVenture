@@ -1,6 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
 import { scoreByPosition } from "../src/lib/games/sequence-scoring.ts";
-import { buildPatternRound, type PatternSessions } from "../src/lib/games/pattern-train.ts";
 
 const GAME_FILES = [
   "AnimalVehicleBuilder.tsx",
@@ -111,28 +110,14 @@ Deno.test("sequencing quiz scores each placed item by its final position", () =>
   assertEquals(scoreByPosition(["bread", "ham", "bread"], ["bread", "ham", "bread"]), 3);
 });
 
-Deno.test("pattern train presents one carriage that breaks the sequence", async () => {
+Deno.test("pattern train quiz records a wrong choice as a wrong missing position", async () => {
   const source = await readGameSource("PatternTrainAcademy.tsx");
 
   assertEquals(
-    source.includes("Alin ang kakaibang karwahe?") &&
-      source.includes("round.oddIndex") &&
-      source.includes("Kasunod ito sa pattern. Subukan ang iba!"),
+    /if \(allowSkip === false\)[\s\S]*const expected = missingIndices\.map\(i => pattern\[i\]\);[\s\S]*const placed = missingIndices\.map\(i => newFilled\[i\]\);[\s\S]*const levelScore = scoreByPosition\(placed, expected\);[\s\S]*setWrongAttempts\(prev => prev \+ missingIndices\.length - levelScore\);/.test(source),
     true,
-    "Pattern Train should ask learners to find the odd carriage",
+    "Pattern Train should accept choices in quiz mode and score wrong missing slots",
   );
-
-  const sessions: PatternSessions = {
-    pairs: [{ a: "A", b: "B" }],
-    trios: [{ a: "A", b: "B", c: "C" }],
-    hard: [{ a: "A", b: "B", c: "C" }],
-  };
-  const round = buildPatternRound(1, sessions, () => 0);
-
-  assertEquals(round.sequence.length, 6);
-  assertEquals(round.oddIndex, 1);
-  assertEquals(round.sequence[round.oddIndex] !== round.expectedSequence[round.oddIndex], true);
-  assertEquals(round.sequence.filter((item, index) => item !== round.expectedSequence[index]).length, 1);
 
   assertEquals(scoreByPosition(["🍎", "🍎"], ["🍎", "🍐"]), 1);
 });

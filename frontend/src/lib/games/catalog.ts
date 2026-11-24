@@ -23,7 +23,7 @@ export type GameCatalogEntry = {
 const GAME_TITLES: Record<TeacherTopicId, readonly string[]> = {
   colors: ["Color Matching Game", "Balloon Finding Game", "Rainbow Color Catcher", "Rainbow Color Adventure Deluxe", "Rainbow Galaxy Explorer", "Choose Which Color", "Little Color Artists"],
   shapes: ["Shape Matching", "Find the Shape", "Monster Cafe", "Shape Matcher", "Shape Hunter", "Shape Racing", "Shape Wizard", "Hungry Dinosaur"],
-  sequencing: ["Arrange Numbers", "Alphabet Express", "Size Sorter", "Shortest to Longest", "Smallest to Biggest Cake", "Surprise Sequencing", "Mega Animal & Vehicle Builder", "Pattern Breaker Train", "Sandwich Maker"],
+  sequencing: ["Arrange Numbers", "Alphabet Express", "Size Sorter", "Shortest to Longest", "Smallest to Biggest Cake", "Surprise Sequencing", "Mega Animal & Vehicle Builder", "Pattern Academy", "Sandwich Maker"],
   addition: ["Addition Adventure", "Dice Addition Adventure", "Star Math", "Rainbow Addition Garden", "Addition Fun", "Count the Apples", "Fruit Pop Math", "Addition Adventure", "Addition Round 2", "Animal Safari", "Under the Sea", "Magic Carnival", "Ice Cream Shop", "Magic Pizza Chef", "Star Catcher"],
   subtraction: ["Balloon Pop Subtraction", "Fruit Subtraction", "Gentle Math Drift", "Subtraction Adventure", "Subtraction Pop", "Magical Dino Egg Hatchery", "Farmyard Hide & Seek", "Feed the Hippo", "Space Blast"],
   numbers: ["Drag the Correct Number", "Count & Match Adventure", "Animal Pop", "Feed the Hungry Monster", "Whack-a-Mole", "Deep Diver: Number Explorer", "The Magic Toy Factory", "Number Monster"],

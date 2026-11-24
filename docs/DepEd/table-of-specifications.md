@@ -184,7 +184,7 @@ receive a completed game specification using the standard fields above.
 | E | `sequencing:4` | Smallest to Biggest Cake | Order objects from smallest to biggest |
 | F | `sequencing:5` | Surprise Sequencing | Complete or arrange a sequence |
 | G | `sequencing:6` | Mega Animal & Vehicle Builder | Sequence parts or construction steps |
-| H | `sequencing:7` | Pattern Breaker Train | Find the carriage that breaks a repeating pattern |
+| H | `sequencing:7` | Pattern Academy | Fill the missing carriage in a repeating pattern |
 | I | `sequencing:8` | Sandwich Maker | Arrange steps or components in order |
 
 ### IV. Addition — 15 games
