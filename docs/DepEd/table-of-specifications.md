@@ -63,15 +63,18 @@ in each game.
 
 | Competencies | Time Spent / Freq. | No. of Items | Percentage | Remembering (POI) | Understanding (POI) | Applying (POI) | Analyzing (POI) | Evaluating (POI) | Creating (POI) |
 |---|---:|---:|---:|---|---|---|---|---|---|
-| Sort and classify objects according to one attribute or property, such as shape, color, or size | 4 | 4 | 20% | 1, 2 | 3 | 4 | — | — | — |
-| Arrange objects according to a given attribute, such as size or length, and describe their relationship | 2 | 2 | 10% | — | 5 | 6 | — | — | — |
-| Count objects with one-to-one correspondence up to quantities of 10 | 4 | 4 | 20% | 7, 8 | — | 9, 10 | — | — | — |
-| Tell time by the hour and connect time with familiar routines | 3 | 3 | 15% | — | — | 11, 12, 13 | — | — | — |
-| Identify the number that comes before, after, or in between | 3 | 3 | 15% | — | 14, 15, 16 | — | — | — |
-| Arrange three numbers from least to greatest or greatest to least | 2 | 2 | 10% | — | — | 17, 18 | — | — | — |
-| Recognize words or situations that indicate addition, such as “put together,” “add to,” or “in all” | 1 | 1 | 5% | — | 19 | — | — | — | — |
-| Recognize words or situations that indicate subtraction, such as “take away,” “less,” or “are left” | 1 | 1 | 5% | — | 20 | — | — | — | — |
-| **TOTAL** | **20 minutes** | **20** | **100%** | **4** | **7** | **9** | **0** | **0** | **0** |
+| Sort and classify objects according to one attribute or property, such as shape, color, or size | 3 | 3 | 15% | 1 | 2 | — | 3 | — | — |
+| Arrange objects according to a given attribute, such as size or length, and describe their relationship | 2 | 2 | 10% | — | 4 | 5 | — | — | — |
+| Count objects with one-to-one correspondence up to quantities of 10 | 3 | 3 | 15% | 6 | 7 | 8 | — | — | — |
+| Tell time by the hour and connect time with familiar routines | 2 | 2 | 10% | 9 | — | 10 | — | — | — |
+| Identify the number that comes before, after, or in between | 2 | 2 | 10% | — | 11 | 12 | — | — | — |
+| Arrange three numbers from least to greatest or greatest to least | 2 | 2 | 10% | — | — | 13 | 14 | — | — |
+| Identify and complete repeating patterns | 2 | 2 | 10% | — | — | 16 | 15 | — | — |
+| Compare two groups using more, less, or equal | 1 | 1 | 5% | — | — | — | — | 17 | — |
+| Recognize words or situations that indicate addition, such as “put together,” “add to,” or “in all” | 1 | 1 | 5% | — | 18 | — | — | — | — |
+| Recognize words or situations that indicate subtraction, such as “take away,” “less,” or “are left” | 1 | 1 | 5% | — | — | 19 | — | — | — |
+| Create an original picture using at least three colors | 1 | 1 | 5% | — | — | — | — | — | 20 |
+| **TOTAL** | **20 minutes** | **20** | **100%** | **3** | **5** | **7** | **3** | **1** | **1** |
 
 ### TOS validation notes
 
@@ -81,9 +84,12 @@ in each game.
   visual complexity or theme of the game.
 - The 20 POIs are assessment opportunities, not a requirement that only 20
   games may be used for instruction.
-- If the school requires Analyzing, Evaluating, or Creating items, those should
-  be represented by authentic learner performance tasks and validated with the
-  Kindergarten teacher rather than forced into a game score.
+- The revised draft deliberately includes Analyzing, Evaluating, and Creating
+  opportunities through pattern completion, comparison judgment, and the Little
+  Color Artists performance task. These assignments still require validation by
+  the Kindergarten teacher and should not be forced into a game score.
+- The added competency rows are working assessment descriptions. Replace them
+  with the exact approved curriculum wording and codes before submission.
 
 ## 5. Game-to-POI mapping
 
@@ -95,24 +101,24 @@ prompts, response types, and scoring behavior are documented.
 |---:|---|---|---|---|---|
 | 1 | Colors / Shapes | `colors:0` or `shapes:0` | Color Matching Game or Shape Matching | Identify and match an attribute | To validate |
 | 2 | Colors / Shapes | `colors:1` or `shapes:1` | Balloon Finding Game or Find the Shape | Select an object with the target attribute | To validate |
-| 3 | Comparison | `comparison:1` | Pag-aayos ng Laki | Classify or order objects by size | To validate |
-| 4 | Measurement | `measurement:1` | Small & Short | Compare objects by size or length | To validate |
+| 3 | Shapes | `shapes:8` | Munting Eksplorador | Analyze four objects and identify the one with a different shape property | To validate |
+| 4 | Comparison | `comparison:1` | Pag-aayos ng Laki | Classify or order objects by size | To validate |
 | 5 | Sequencing | `sequencing:2` | Size Sorter | Arrange objects by size | To validate |
-| 6 | Measurement | `measurement:3` | The Tiny Builder's Ruler | Compare or measure length using the available representation | To validate |
-| 7 | Numbers | `numbers:0` | Drag the Correct Number | Recognize the numeral connected to a quantity | To validate |
-| 8 | Numbers | `numbers:1` | Count & Match Adventure | Count objects with one-to-one correspondence | To validate |
-| 9 | Numbers | `numbers:2` | Animal Pop | Count or select a target quantity | To validate |
-| 10 | Numbers | `numbers:3` | Feed the Hungry Monster | Represent or match a quantity | To validate |
-| 11 | Clock | `clock:0` | Time Adventure | Identify a familiar time by the hour | To validate |
-| 12 | Clock | `clock:1` | Time Matcher | Match a clock face to a time | To validate |
-| 13 | Clock | `clock:6` | What Time Is It? | Identify the time shown on an analog clock | To validate |
-| 14 | Numbers | `numbers:5` | Deep Diver: Number Explorer | Identify the number before or after | To validate |
-| 15 | Numbers | `numbers:6` | The Magic Toy Factory | Complete a number sequence | To validate |
-| 16 | Sequencing | `sequencing:0` | Arrange Numbers | Place numbers in sequence | To validate |
-| 17 | Sequencing | `sequencing:0` | Arrange Numbers | Order three numbers from least to greatest | To validate |
-| 18 | Sequencing | `sequencing:1` | Alphabet Express | Arrange a sequence in the intended order | To validate |
-| 19 | Addition | `addition:4` | Addition Fun | Recognize or model a “put together” situation | To validate |
-| 20 | Subtraction | `subtraction:4` | Subtraction Pop | Recognize or model a “take away” situation | To validate |
+| 6 | Numbers | `numbers:0` | Drag the Correct Number | Recognize the numeral connected to a quantity | To validate |
+| 7 | Numbers | `numbers:1` | Count & Match Adventure | Count objects with one-to-one correspondence | To validate |
+| 8 | Numbers | `numbers:2` | Animal Pop | Count or select a target quantity | To validate |
+| 9 | Clock | `clock:0` | Time Adventure | Identify a familiar time by the hour | To validate |
+| 10 | Clock | `clock:1` | Time Matcher | Match a clock face to a time | To validate |
+| 11 | Numbers | `numbers:5` | Deep Diver: Number Explorer | Identify the number before or after | To validate |
+| 12 | Numbers | `numbers:6` | The Magic Toy Factory | Complete a number sequence | To validate |
+| 13 | Sequencing | `sequencing:0` | Arrange Numbers | Place numbers in sequence | To validate |
+| 14 | Sequencing | `sequencing:0` | Arrange Numbers | Order three numbers from least to greatest | To validate |
+| 15 | Sequencing | `sequencing:7` | Pattern Academy | Fill missing carriages in a repeating pattern | To validate |
+| 16 | Sequencing | `sequencing:7` | Pattern Academy | Apply a repeating pattern rule to complete a train | To validate |
+| 17 | Comparison | `comparison:11` | Little Math Detectives | Judge whether a more/less/equal statement is true | To validate |
+| 18 | Addition | `addition:4` | Addition Fun | Recognize or model a “put together” situation | To validate |
+| 19 | Subtraction | `subtraction:4` | Subtraction Pop | Recognize or model a “take away” situation | To validate |
+| 20 | Colors | `colors:6` | Little Color Artists | Create an original picture using at least three colors | To validate |
 
 ## 6. Standard game specification
 
