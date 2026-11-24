@@ -186,7 +186,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Language>('en');
 
   useEffect(() => {
-    const saved = localStorage.getItem('mathventure-lang') as Language;
+    const storage = getLanguageStorage();
+    const saved = storage?.getItem('mathventure-lang') as Language | null;
     if (saved === 'en' || saved === 'tl') {
       setLang(saved);
     }
@@ -194,7 +195,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const handleSetLang = (l: Language) => {
     setLang(l);
-    localStorage.setItem('mathventure-lang', l);
+    getLanguageStorage()?.setItem('mathventure-lang', l);
   };
 
   const t = (key: string) => {
@@ -206,4 +207,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       {children}
     </LanguageContext.Provider>
   );
+}
+
+function getLanguageStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
