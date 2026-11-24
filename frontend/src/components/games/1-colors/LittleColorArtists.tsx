@@ -34,21 +34,14 @@ type ToolId = (typeof TOOLS)[number]['id'];
 type Point = { x: number; y: number };
 type Snapshot = { image: ImageData; usedColors: string[]; hasDrawing: boolean };
 
-const FILIPINO_INSTRUCTION = 'Pumili ng kulay at gumawa ng sariling larawan. Gumamit ng hindi bababa sa tatlong kulay.';
+const INSTRUCTION_AUDIO = '/assets/audio/little-color-artists/gumawa-ng-sarili.m4a';
 
-function speakFilipino(text: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'fil-PH';
-  utterance.rate = 0.9;
-  utterance.pitch = 1.15;
-  const filipinoVoice = window.speechSynthesis.getVoices().find((voice) =>
-    voice.lang.toLowerCase().startsWith('fil') || voice.lang.toLowerCase().startsWith('tl'),
-  );
-  if (filipinoVoice) utterance.voice = filipinoVoice;
-  window.speechSynthesis.speak(utterance);
+function playInstruction(audioRef: { current: HTMLAudioElement | null }) {
+  audioRef.current?.pause();
+  const audio = new Audio(INSTRUCTION_AUDIO);
+  audio.preload = 'auto';
+  audioRef.current = audio;
+  void audio.play().catch(() => undefined);
 }
 
 export function LittleColorArtists({
@@ -59,6 +52,7 @@ export function LittleColorArtists({
   allowSkip?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const historyRef = useRef<Snapshot[]>([]);
   const lastPointRef = useRef<Point | null>(null);
   const isDrawingRef = useRef(false);
@@ -77,11 +71,12 @@ export function LittleColorArtists({
 
     context.fillStyle = 'white';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    const timer = window.setTimeout(() => speakFilipino(FILIPINO_INSTRUCTION), 400);
+    const timer = window.setTimeout(() => playInstruction(audioRef), 400);
 
     return () => {
       window.clearTimeout(timer);
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      audioRef.current?.pause();
+      audioRef.current = null;
     };
   }, []);
 
@@ -263,18 +258,15 @@ export function LittleColorArtists({
   const finishArtwork = () => {
     if (!hasDrawing) {
       setStatusMessage('Gumawa muna ng larawan.');
-      speakFilipino('Gumawa muna ng larawan.');
       return;
     }
     if (usedColors.length < 3) {
       setStatusMessage(`Pumili pa ng kulay. Gumamit ng ${3 - usedColors.length} pang kulay.`);
-      speakFilipino('Gumamit pa ng ibang kulay. Kailangan ng tatlong kulay.');
       return;
     }
 
     setStatusMessage('');
     setShowComplete(true);
-    speakFilipino('Napakaganda! Nakagawa ka ng sariling larawan gamit ang tatlong kulay o higit pa.');
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
   };
 
@@ -296,7 +288,7 @@ export function LittleColorArtists({
               className="rounded-2xl border-2 border-indigo-300 bg-white font-bold text-indigo-700"
               aria-label="Pakinggan ang instruksyon"
               title="Pakinggan ang instruksyon"
-              onClick={() => speakFilipino(FILIPINO_INSTRUCTION)}
+              onClick={() => playInstruction(audioRef)}
             >
               <Volume2 className="mr-2 h-5 w-5" aria-hidden="true" /> Pakinggan
             </Button>
