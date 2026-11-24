@@ -209,5 +209,12 @@ export const shapesData: Question[] = [
     "correctFeedback": "",
     "wrongFeedback": ""
   },
+  {
+    "id": "shapes_10",
+    "prompt": "MuntingEksplorador",
+    "options": [],
+    "correctFeedback": "",
+    "wrongFeedback": ""
+  },
 
 ];

@@ -1,6 +1,6 @@
 export const GAME_COUNT_BY_TOPIC = {
   colors: 7,
-  shapes: 8,
+  shapes: 9,
   sequencing: 9,
   addition: 15,
   subtraction: 9,
@@ -22,7 +22,7 @@ export type GameCatalogEntry = {
 
 const GAME_TITLES: Record<TeacherTopicId, readonly string[]> = {
   colors: ["Color Matching Game", "Balloon Finding Game", "Rainbow Color Catcher", "Rainbow Color Adventure Deluxe", "Rainbow Galaxy Explorer", "Choose Which Color", "Little Color Artists"],
-  shapes: ["Shape Matching", "Find the Shape", "Monster Cafe", "Shape Matcher", "Shape Hunter", "Shape Racing", "Shape Wizard", "Hungry Dinosaur"],
+  shapes: ["Shape Matching", "Find the Shape", "Monster Cafe", "Shape Matcher", "Shape Hunter", "Shape Racing", "Shape Wizard", "Hungry Dinosaur", "Munting Eksplorador"],
   sequencing: ["Arrange Numbers", "Alphabet Express", "Size Sorter", "Shortest to Longest", "Smallest to Biggest Cake", "Surprise Sequencing", "Mega Animal & Vehicle Builder", "Pattern Academy", "Sandwich Maker"],
   addition: ["Addition Adventure", "Dice Addition Adventure", "Star Math", "Rainbow Addition Garden", "Addition Fun", "Count the Apples", "Fruit Pop Math", "Addition Adventure", "Addition Round 2", "Animal Safari", "Under the Sea", "Magic Carnival", "Ice Cream Shop", "Magic Pizza Chef", "Star Catcher"],
   subtraction: ["Balloon Pop Subtraction", "Fruit Subtraction", "Gentle Math Drift", "Subtraction Adventure", "Subtraction Pop", "Magical Dino Egg Hatchery", "Farmyard Hide & Seek", "Feed the Hippo", "Space Blast"],

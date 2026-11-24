@@ -12,7 +12,7 @@ export const FREE_PLAY_GAME_COUNT_BY_TOPIC = {
 } as const;
 
 export const FREE_PLAY_DRAWING_BOARD_GAME_ORDERS: Partial<Record<TeacherTopicId, number>> = {
-  shapes: 8,
+  shapes: 9,
   sequencing: 9,
   addition: 15,
   subtraction: 9,

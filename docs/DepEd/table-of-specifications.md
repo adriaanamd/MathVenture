@@ -5,7 +5,7 @@
 > **Grade:** Kindergarten
 > **Grading period:** 1st to 4th
 > **School year:** 2025–2026
-> **Scope:** 9 topics and 81 game activities currently cataloged in MathVenture
+> **Scope:** 9 topics and 82 game activities currently cataloged in MathVenture
 
 ## 1. Purpose and use
 
@@ -49,7 +49,7 @@ this definition consistently throughout the document.
 | Grading period | 1st to 4th |
 | School year | 2025–2026 |
 | Total proposed POIs | 20 |
-| Total cataloged games | 81 |
+| Total cataloged games | 82 |
 | Assessment basis | Game performance, teacher observation, learner work, and recorded evidence |
 | Document status | Draft for validation |
 
@@ -160,7 +160,7 @@ receive a completed game specification using the standard fields above.
 | F | `colors:5` | Choose Which Color | Choose the correct color |
 | G | `colors:6` | Little Color Artists | Create an original picture using at least three colors |
 
-### II. Shapes — 8 games
+### II. Shapes — 9 games
 
 | Letter | Game ID | Game | Primary evidence to verify |
 |---|---|---|---|
@@ -172,6 +172,7 @@ receive a completed game specification using the standard fields above.
 | F | `shapes:5` | Shape Racing | Respond to shapes under game conditions |
 | G | `shapes:6` | Shape Wizard | Identify or transform shape representations |
 | H | `shapes:7` | Hungry Dinosaur | Select shapes in a contextual task |
+| I | `shapes:8` | Munting Eksplorador | Identify the shape that is different from the others |
 
 ### III. Sequencing — 9 games
 

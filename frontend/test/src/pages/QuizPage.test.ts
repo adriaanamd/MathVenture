@@ -36,6 +36,13 @@ Deno.test("Free Play colors includes Little Color Artists as its final activity"
   assertEquals(source.includes("colors: GAME_COUNT_BY_TOPIC.colors"), true);
 });
 
+Deno.test("shapes quiz includes Munting Eksplorador as its ninth activity", async () => {
+  const source = await readSource(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("topic === 'shapes' && currentIndex === 8"), true);
+  assertEquals(source.includes("<MuntingEksplorador"), true);
+});
+
 Deno.test("comparison quiz includes Little Math Detectives as its fixed final activity", async () => {
   const source = await readSource(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 

@@ -22,6 +22,7 @@ import { ShapeHunter } from '@/components/games/2-shapes/ShapeHunter';
 import { ShapeRacing } from '@/components/games/2-shapes/ShapeRacing';
 import { ShapeWizard } from '@/components/games/2-shapes/ShapeWizard';
 import { HungryDragon } from '@/components/games/2-shapes/HungryDragon';
+import { MuntingEksplorador } from '@/components/games/2-shapes/MuntingEksplorador';
 import { ArrangeNumbers } from '@/components/games/3-sequencing/ArrangeNumbers';
 import { ArrangeLetters } from '@/components/games/3-sequencing/ArrangeLetters';
 import { SizeSorter } from '@/components/games/3-sequencing/SizeSorter';
@@ -745,6 +746,8 @@ export function QuizPage() {
           <ShapeWizard onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 7 ? (
           <HungryDragon onComplete={handleStructuredGameComplete} />
+        ) : topic === 'shapes' && currentIndex === 8 ? (
+          <MuntingEksplorador onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 0 ? (
           <ArrangeNumbers onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 1 ? (
