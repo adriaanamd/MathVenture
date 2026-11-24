@@ -2,8 +2,26 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, XCircle, Train } from 'lucide-react';
+import { Eye, MousePointerClick, Play, Search, Volume2, XCircle, Train } from 'lucide-react';
 import { buildPatternRound, type PatternSessions, type PatternRound } from '@/lib/games/pattern-train';
+
+const FILIPINO_INSTRUCTION = 'Tingnan ang tren. Hanapin ang karwaheng hindi kasunod sa pattern. Pindutin ang kakaiba.';
+const FILIPINO_DEMO = 'Panoorin muna. Ito ang kakaibang karwahe. Pagkatapos, ikaw naman ang maghahanap.';
+
+function speakFilipino(text: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'fil-PH';
+  utterance.rate = 0.9;
+  utterance.pitch = 1.15;
+  const filipinoVoice = window.speechSynthesis.getVoices().find((voice) =>
+    voice.lang.toLowerCase().startsWith('fil') || voice.lang.toLowerCase().startsWith('tl'),
+  );
+  if (filipinoVoice) utterance.voice = filipinoVoice;
+  window.speechSynthesis.speak(utterance);
+}
 
 const ITEMS_2D = [
   { a: '\u{1F36A}', b: '\u{1F95B}' },
@@ -41,6 +59,7 @@ export function PatternTrainAcademy({
   const [round, setRound] = useState<PatternRound | null>(null);
   const [selectedCar, setSelectedCar] = useState<number | null>(null);
   const [roundSolved, setRoundSolved] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [correctItems, setCorrectItems] = useState(0);
   const [wrongAttempts, setWrongAttempts] = useState(0);
@@ -60,6 +79,29 @@ export function PatternTrainAcademy({
     if (sessions) startLevel(1);
   }, [sessions]);
 
+  useEffect(() => {
+    if (!round || trainStatus !== 'idle') return;
+
+    const timer = window.setTimeout(() => {
+      speakFilipino(level === 1 && showDemo ? `${FILIPINO_INSTRUCTION} ${FILIPINO_DEMO}` : FILIPINO_INSTRUCTION);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [level, round, showDemo, trainStatus]);
+
+  useEffect(() => {
+    if (!showDemo || trainStatus !== 'idle') return;
+
+    const timer = window.setTimeout(() => setShowDemo(false), 3600);
+    return () => window.clearTimeout(timer);
+  }, [showDemo, trainStatus]);
+
+  useEffect(() => () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, []);
+
   const startLevel = (nextLevel: number) => {
     if (!sessions) return;
 
@@ -67,6 +109,7 @@ export function PatternTrainAcademy({
     setRound(buildPatternRound(nextLevel, sessions));
     setSelectedCar(null);
     setRoundSolved(false);
+    setShowDemo(nextLevel === 1);
     setErrorMsg('');
     setTrainStatus('waiting');
 
@@ -79,13 +122,14 @@ export function PatternTrainAcademy({
   };
 
   const handleCarClick = (carIndex: number) => {
-    if (!round || trainStatus !== 'idle' || roundSolved) return;
+    if (!round || trainStatus !== 'idle' || roundSolved || showDemo) return;
 
     setSelectedCar(carIndex);
 
     if (carIndex !== round.oddIndex) {
       setWrongAttempts((previous) => previous + 1);
-      setErrorMsg('That carriage fits the pattern. Try another one!');
+      setErrorMsg('Kasunod ito sa pattern. Subukan ang iba!');
+      speakFilipino('Hindi ito. Kasunod sa pattern ang karwaheng ito. Subukan ang iba.');
       setTimeout(() => setErrorMsg(''), 1800);
       return;
     }
@@ -93,6 +137,7 @@ export function PatternTrainAcademy({
     setRoundSolved(true);
     setCorrectItems((previous) => previous + 1);
     setErrorMsg('');
+    speakFilipino('Tama! Ito ang kakaibang karwahe. Magaling!');
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
 
     setTimeout(() => {
@@ -105,17 +150,24 @@ export function PatternTrainAcademy({
 
   const getDifficultyStyles = () => {
     if (level <= 5) {
-      return { bg: 'bg-emerald-500', text: 'AB Pattern', prompt: 'Which carriage breaks the pattern?' };
+      return { bg: 'bg-emerald-500', text: 'AB Pattern', prompt: 'Alin ang kakaibang karwahe?' };
     }
     if (level <= 8) {
-      return { bg: 'bg-amber-500', text: 'ABC Pattern', prompt: 'Find the carriage that does not belong!' };
+      return { bg: 'bg-amber-500', text: 'ABC Pattern', prompt: 'Hanapin ang kakaiba!' };
     }
-    return { bg: 'bg-rose-500', text: 'ABB Pattern', prompt: 'The pattern is trickier—spot the odd carriage!' };
+    return { bg: 'bg-rose-500', text: 'ABB Pattern', prompt: 'Hanapin ang kakaibang karwahe!' };
   };
 
   const isCompleted = trainStatus === 'exit' && level === 11;
   const isPerfect = wrongAttempts === 0;
   const diffStyle = getDifficultyStyles();
+
+  useEffect(() => {
+    if (!isCompleted) return;
+    speakFilipino(isPerfect
+      ? 'Magaling! Nahanap mo ang lahat ng kakaibang karwahe.'
+      : 'Tapos na ang laro. Magaling pa rin ang iyong pagsubok.');
+  }, [isCompleted, isPerfect]);
 
   if (!sessions || !round) return null;
 
@@ -141,12 +193,43 @@ export function PatternTrainAcademy({
 
       {/* Prompt */}
       <div className="bg-white/80 border-4 border-sky-300 rounded-3xl p-4 mb-8 shadow-sm text-center w-full max-w-2xl z-10">
-        <h3 className="text-2xl md:text-3xl font-bold text-sky-800 drop-shadow-sm">
-          {diffStyle.prompt}
-        </h3>
+        <div className="flex items-center justify-center gap-3">
+          <h3 className="text-2xl md:text-3xl font-bold text-sky-800 drop-shadow-sm">
+            {diffStyle.prompt}
+          </h3>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-12 w-12 shrink-0 rounded-full border-2 border-sky-400 bg-white text-sky-700 shadow-sm hover:scale-105"
+            aria-label="Pakinggan muli ang instruksyon"
+            title="Pakinggan muli"
+            onClick={() => speakFilipino(FILIPINO_INSTRUCTION)}
+          >
+            <Volume2 className="h-6 w-6" aria-hidden="true" />
+          </Button>
+        </div>
         <p className="mt-2 text-base md:text-lg font-semibold text-sky-700">
-          Tap the one train carriage that does not belong.
+          🔊 Pakinggan ang instruksyon, pagkatapos pindutin ang kakaibang karwahe.
         </p>
+      </div>
+
+      {/* Visual instructions: the icons carry the meaning even before reading. */}
+      <div className="flex items-center justify-center gap-3 md:gap-6 mb-4 text-sky-800" aria-label="Tingnan, hanapin, pindutin">
+        <div className="flex flex-col items-center gap-1 rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
+          <Eye className="h-8 w-8" aria-hidden="true" />
+          <span className="text-2xl" aria-hidden="true">👀</span>
+        </div>
+        <div className="text-2xl font-black" aria-hidden="true">➡️</div>
+        <div className="flex flex-col items-center gap-1 rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
+          <Search className="h-8 w-8" aria-hidden="true" />
+          <span className="text-2xl" aria-hidden="true">🔍</span>
+        </div>
+        <div className="text-2xl font-black" aria-hidden="true">➡️</div>
+        <div className="flex flex-col items-center gap-1 rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
+          <MousePointerClick className="h-8 w-8" aria-hidden="true" />
+          <span className="text-2xl" aria-hidden="true">👆</span>
+        </div>
       </div>
 
       {/* Train Track Area */}
@@ -175,10 +258,10 @@ export function PatternTrainAcademy({
                 key={`car-${index}`}
                 type="button"
                 aria-label={`Train carriage ${index + 1}`}
-                disabled={roundSolved}
+                disabled={roundSolved || showDemo}
                 onClick={() => handleCarClick(index)}
-                whileHover={!roundSolved ? { y: -8, scale: 1.05 } : undefined}
-                whileTap={!roundSolved ? { scale: 0.95 } : undefined}
+                whileHover={!roundSolved && !showDemo ? { y: -8, scale: 1.05 } : undefined}
+                whileTap={!roundSolved && !showDemo ? { scale: 0.95 } : undefined}
                 className={`w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-2xl sm:text-3xl md:text-4xl shadow-[0_4px_0_0_#0284c7] border-2 z-10 relative transition-colors
                   ${isCorrect ? 'bg-emerald-100 border-emerald-500 ring-4 ring-emerald-300' : ''}
                   ${isWrong ? 'bg-rose-100 border-rose-500 ring-2 ring-rose-300' : ''}
@@ -187,6 +270,16 @@ export function PatternTrainAcademy({
               >
                 {item}
                 <span className="absolute -bottom-4 w-full flex justify-center gap-2 text-xs opacity-80" aria-hidden="true">⚫ ⚫</span>
+                {showDemo && level === 1 && index === round.oddIndex && (
+                  <motion.span
+                    className="absolute -top-14 left-1/2 -translate-x-1/2 text-4xl drop-shadow-md"
+                    animate={{ y: [0, 8, 0], scale: [1, 1.15, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                    aria-hidden="true"
+                  >
+                    👆
+                  </motion.span>
+                )}
               </motion.button>
             );
           })}
@@ -214,15 +307,15 @@ export function PatternTrainAcademy({
               className="flex flex-col items-center gap-4 fixed inset-0 bg-emerald-50 z-50 justify-center"
             >
               <div className="text-7xl">🏆🚂🏆</div>
-              <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 drop-shadow-sm">{isPerfect ? 'PATTERN BREAKER MASTER!' : 'PATTERN PRACTICE COMPLETE!'}</h1>
-              <p className="text-xl md:text-2xl text-emerald-600 font-medium mb-4">{isPerfect ? 'You found every odd carriage!' : 'Good try! Keep looking for pattern breaks.'}</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 drop-shadow-sm">{isPerfect ? 'HENYO SA PATTERN!' : 'TAPOS NA ANG LARO!'}</h1>
+              <p className="text-xl md:text-2xl text-emerald-600 font-medium mb-4">{isPerfect ? 'Nahanap mo ang lahat ng kakaibang karwahe!' : 'Magaling pa rin ang iyong pagsubok!'}</p>
 
               <Button
                 size="lg"
                 className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                 onClick={allowSkip ? () => startLevel(1) : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
               >
-                {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
+                {allowSkip ? 'Ulitin ang Laro' : 'Susunod na Laro'} <Play className="ml-2 w-6 h-6 fill-current" />
               </Button>
             </motion.div>
           ) : null}

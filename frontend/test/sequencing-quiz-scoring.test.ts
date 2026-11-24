@@ -115,9 +115,9 @@ Deno.test("pattern train presents one carriage that breaks the sequence", async 
   const source = await readGameSource("PatternTrainAcademy.tsx");
 
   assertEquals(
-    source.includes("Which carriage breaks the pattern?") &&
+    source.includes("Alin ang kakaibang karwahe?") &&
       source.includes("round.oddIndex") &&
-      source.includes("That carriage fits the pattern. Try another one!"),
+      source.includes("Kasunod ito sa pattern. Subukan ang iba!"),
     true,
     "Pattern Train should ask learners to find the odd carriage",
   );
