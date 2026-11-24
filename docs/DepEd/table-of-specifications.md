@@ -50,6 +50,7 @@ this definition consistently throughout the document.
 | School year | 2025–2026 |
 | Total proposed POIs | 20 |
 | Total cataloged games | 82 |
+| Last updated | 25 November 2026 |
 | Assessment basis | Game performance, teacher observation, learner work, and recorded evidence |
 | Document status | Draft for validation |
 
@@ -274,6 +275,25 @@ receive a completed game specification using the standard fields above.
 | E | `clock:4` | Daily Routine Time | Connect routines with time |
 | F | `clock:5` | Build the Clock | Construct an analog clock time |
 | G | `clock:6` | What Time Is It? | Tell time by the hour |
+
+### 7.1 Recent game additions: draft specifications
+
+The following entries document the three recently added activities in the
+current application. Their cognitive levels are proposed evidence-alignment
+labels for teacher review; they are not additional POIs beyond the 20-item
+summary matrix above. Final POI numbers and official competency codes must be
+assigned after classroom validation.
+
+| Game ID | Game | Current learner task | Evidence opportunities | Proposed primary cognitive level | Assessment role | Accessibility and implementation notes |
+|---|---|---|---:|---|---|---|
+| `colors:6` | Little Color Artists | Create an original picture using at least three selected colors, with drawing tools and stamps. | 1 performance task | Creating | Formative performance evidence | Filipino written prompts plus a bundled recorded instruction; teacher observes color selection, persistence, and independence. |
+| `shapes:8` | Munting Eksplorador | Choose the object whose shape or visual property is different from the other three objects. | 10 fixed rounds | Analyzing | Formative selected-response evidence | Filipino recorded prompts and feedback; no reading is required to play; the round order and answer key are fixed for repeatable observation. |
+| `comparison:11` | Little Math Detectives | Decide whether a spoken statement about two pictured groups is true or false after counting the objects. | 5 fixed questions | Evaluating | Formative selected-response evidence | Filipino recorded question, retry, and success clips; visual groups support one-to-one counting and the activity does not depend on speech synthesis. |
+
+These activities should be linked to the approved competency code and POI
+number only after the teacher confirms that the observed learner behavior
+matches the intended competency. The recorded audio supports access to the
+instructions; it does not by itself change the cognitive level of the task.
 
 ## 8. Per-game specification template
 
