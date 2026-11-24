@@ -9,6 +9,7 @@ const assetsPath = await Deno.realPath(new URL("../../../public/assets/", import
 Deno.test("media manifest recognizes supported image, audio, and video files only", () => {
   assertEquals(isSupportedMediaPath("assets/images/lesson.PNG"), true);
   assertEquals(isSupportedMediaPath("assets/audio/audio/voice.MP3"), true);
+  assertEquals(isSupportedMediaPath("assets/audio/audio/voice.M4A"), true);
   assertEquals(isSupportedMediaPath("assets/videos/lesson.webm"), true);
   assertEquals(isSupportedMediaPath("assets/papers/research.pdf"), false);
   assertEquals(isSupportedMediaPath("assets/notes/readme.txt"), false);

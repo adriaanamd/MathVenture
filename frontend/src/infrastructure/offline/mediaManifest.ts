@@ -16,6 +16,7 @@ export const FREE_PLAY_MEDIA_EXTENSIONS = new Set([
   '.gif',
   '.jpeg',
   '.jpg',
+  '.m4a',
   '.mp3',
   '.mp4',
   '.ogg',

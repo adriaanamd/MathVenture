@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronRight, Eye, MousePointerClick, RotateCcw, Sparkles, Volume2, X } from 'lucide-react';
+import { Check, ChevronRight, Eye, MousePointerClick, Play, RotateCcw, Sparkles, Volume2, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import {
   getMathDetectiveStatement,
@@ -7,21 +7,48 @@ import {
   MATH_DETECTIVE_QUESTIONS,
 } from '@/lib/games/math-detectives';
 
-const INSTRUCTION = 'Tingnan ang dalawang pangkat. Bilangin ang mga larawan. Pakinggan ang pangungusap. Pindutin ang tsek kung tama, o ekis kung mali.';
+const AUDIO_ROOT = '/assets/audio/little-math-detectives';
+const AUDIO_CLIPS = {
+  start: `${AUDIO_ROOT}/start.m4a`,
+  questions: [
+    `${AUDIO_ROOT}/question-1.m4a`,
+    `${AUDIO_ROOT}/question-2.m4a`,
+    `${AUDIO_ROOT}/question-3.m4a`,
+    `${AUDIO_ROOT}/question-4.m4a`,
+    `${AUDIO_ROOT}/question-5.m4a`,
+  ],
+  correct: `${AUDIO_ROOT}/correct.m4a`,
+  retry: `${AUDIO_ROOT}/retry.m4a`,
+} as const;
 
-function speakFilipino(text: string) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+let activeAudio: HTMLAudioElement | null = null;
 
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'fil-PH';
-  utterance.rate = 0.88;
-  utterance.pitch = 1.12;
-  const filipinoVoice = window.speechSynthesis.getVoices().find((voice) =>
-    voice.lang.toLowerCase().startsWith('fil') || voice.lang.toLowerCase().startsWith('tl'),
-  );
-  if (filipinoVoice) utterance.voice = filipinoVoice;
-  window.speechSynthesis.speak(utterance);
+function stopAudio() {
+  activeAudio?.pause();
+  activeAudio = null;
+}
+
+function playAudioClip(src: string, onFinished?: () => void) {
+  if (typeof window === 'undefined') {
+    onFinished?.();
+    return;
+  }
+
+  stopAudio();
+  const audio = new Audio(src);
+  activeAudio = audio;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (activeAudio === audio) activeAudio = null;
+    onFinished?.();
+  };
+
+  audio.preload = 'auto';
+  audio.onended = finish;
+  audio.onerror = finish;
+  void audio.play().catch(finish);
 }
 
 interface LittleMathDetectivesProps {
@@ -64,8 +91,11 @@ function Group({
 export function LittleMathDetectives({ onComplete, allowSkip = false }: LittleMathDetectivesProps) {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionSolved, setQuestionSolved] = useState(false);
+  const [nextReady, setNextReady] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'retry' | ''>('');
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -73,58 +103,85 @@ export function LittleMathDetectives({ onComplete, allowSkip = false }: LittleMa
   const statement = getMathDetectiveStatement(question);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => speakFilipino(`${INSTRUCTION} ${statement} Tama ba o mali?`), 350);
-    return () => window.clearTimeout(timer);
-  }, [questionIndex, statement]);
+    if (!hasStarted || isCompleted) return;
+    playAudioClip(AUDIO_CLIPS.questions[questionIndex]);
+  }, [hasStarted, questionIndex, isCompleted]);
 
   useEffect(() => () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopAudio();
   }, []);
 
+  const handleStart = () => {
+    if (isStarting) return;
+
+    setIsStarting(true);
+    playAudioClip(AUDIO_CLIPS.start, () => {
+      setIsStarting(false);
+      setHasStarted(true);
+    });
+  };
+
   const handleAnswer = (answer: boolean) => {
-    if (questionSolved || isCompleted) return;
+    if (!hasStarted || questionSolved || isCompleted) return;
 
     if (isMathDetectiveAnswerCorrect(question, answer)) {
       setQuestionSolved(true);
+      setNextReady(false);
       setFeedback('correct');
       if (firstAttempt) setScore((previous) => previous + 1);
-      speakFilipino(firstAttempt ? 'Tama! Ang galing mong magbilang.' : 'Tama! Subukan ulit at nagawa mo na.');
+      playAudioClip(AUDIO_CLIPS.correct, () => setNextReady(true));
       return;
     }
 
     setFirstAttempt(false);
     setFeedback('retry');
-    speakFilipino('Subukan muli. Bilangin ang mga larawan at pakinggan ang pangungusap.');
+    playAudioClip(AUDIO_CLIPS.retry);
   };
 
   const handleNext = () => {
-    if (!questionSolved) return;
+    if (!questionSolved || !nextReady) return;
 
     if (questionIndex === MATH_DETECTIVE_QUESTIONS.length - 1) {
       setIsCompleted(true);
-      speakFilipino('Natapos mo ang limang tanong. Magaling, munting detektib ng matematika!');
+      playAudioClip(AUDIO_CLIPS.correct);
       return;
     }
 
     setQuestionIndex((previous) => previous + 1);
     setFirstAttempt(true);
     setQuestionSolved(false);
+    setNextReady(false);
     setFeedback('');
   };
 
   const resetGame = () => {
+    stopAudio();
     setQuestionIndex(0);
     setScore(0);
+    setHasStarted(false);
+    setIsStarting(false);
     setFirstAttempt(true);
     setQuestionSolved(false);
+    setNextReady(false);
     setFeedback('');
     setIsCompleted(false);
   };
 
   return (
     <div className="relative mx-auto flex min-h-[620px] w-full max-w-4xl flex-col overflow-hidden rounded-[2.5rem] border-8 border-amber-200 bg-gradient-to-b from-amber-50 via-white to-sky-100 p-4 shadow-xl md:p-7">
+      {!hasStarted && !isCompleted && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center rounded-[2rem] bg-amber-50/95 p-5 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2rem] border-4 border-amber-300 bg-white p-7 text-center shadow-2xl">
+            <div className="mb-2 text-6xl" aria-hidden="true">🔎🎧</div>
+            <h2 className="text-3xl font-black text-amber-900">Munting Detektib</h2>
+            <p className="mt-3 text-lg font-bold text-amber-700">Pindutin ang magsimula at makinig sa kuwento.</p>
+            <Button type="button" size="lg" className="mt-6 rounded-2xl bg-emerald-500 px-8 text-xl font-black text-white hover:bg-emerald-600" onClick={handleStart} disabled={isStarting}>
+              <Play className="h-6 w-6 fill-current" aria-hidden="true" />
+              {isStarting ? 'Nakikinig...' : 'Magsimula'}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="pointer-events-none absolute -right-8 -top-8 text-8xl opacity-20" aria-hidden="true">🔎</div>
 
       <header className="relative z-10 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-3xl border-4 border-amber-200 bg-white/90 p-3 shadow-sm md:p-4">
@@ -166,7 +223,7 @@ export function LittleMathDetectives({ onComplete, allowSkip = false }: LittleMa
               className="h-11 w-11 shrink-0 rounded-full border-2 border-sky-300 bg-white text-sky-700"
               aria-label="Pakinggan muli ang tanong"
               title="Pakinggan muli"
-              onClick={() => speakFilipino(`${INSTRUCTION} ${statement} Tama ba o mali?`)}
+              onClick={() => playAudioClip(AUDIO_CLIPS.questions[questionIndex])}
             >
               <Volume2 className="h-5 w-5" aria-hidden="true" />
             </Button>
@@ -208,7 +265,7 @@ export function LittleMathDetectives({ onComplete, allowSkip = false }: LittleMa
 
         <div className="mt-4 flex min-h-12 items-center justify-center">
           {questionSolved && (
-            <Button type="button" size="lg" className="rounded-2xl bg-sky-600 px-7 text-lg font-black text-white hover:bg-sky-700" onClick={handleNext}>
+            <Button type="button" size="lg" disabled={!nextReady} className="rounded-2xl bg-sky-600 px-7 text-lg font-black text-white hover:bg-sky-700" onClick={handleNext}>
               {questionIndex === MATH_DETECTIVE_QUESTIONS.length - 1 ? 'Tingnan ang resulta' : 'Susunod na tanong'}
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </Button>
